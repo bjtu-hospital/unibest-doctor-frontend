@@ -53,6 +53,13 @@ import LeaveApplyDrawer from './components/LeaveApplyDrawer.vue'
 import LeaveCalendar from './components/LeaveCalendar.vue'
 import LeaveHistoryDrawer from './components/LeaveHistoryDrawer.vue'
 
+definePage({
+  style: {
+    navigationBarTitleText: '请假管理',
+    navigationStyle: 'custom',
+  },
+})
+
 const showApply = ref(false)
 const showHistory = ref(false)
 const selectedDate = ref<ScheduleItem>()
@@ -70,12 +77,3 @@ function handleSubmitted() {
 
 <style scoped>
 </style>
-
-<route lang="json">
-{
-  "style": {
-    "navigationBarTitleText": "请假管理",
-    "navigationStyle": "custom"
-  }
-}
-</route>
