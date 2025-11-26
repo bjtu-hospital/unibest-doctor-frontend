@@ -45,7 +45,7 @@
     <div class="relative mt-2 flex-1 overflow-hidden bg-white">
       <div class="absolute inset-0 overflow-auto">
         <!-- Grid Layout: 48px for time column, rest distributed equally with min-width -->
-        <div class="grid grid-cols-[3rem_repeat(7,minmax(5.5rem,1fr))] min-w-[600px]">
+        <div class="grid grid-cols-[3rem_repeat(7,minmax(5.5rem,1fr))] grid-rows-[auto_repeat(3,minmax(100px,1fr))] h-full min-w-[600px]">
           <!-- 1. Header Row -->
           <!-- Corner (Top-Left) -->
           <div class="sticky left-0 top-0 z-[5] min-h-[3.5rem] flex items-center justify-center border-b border-r border-gray-100 bg-gray-50 text-xs text-gray-400 font-bold">
@@ -68,7 +68,7 @@
           <!-- 2. Body Rows -->
           <template v-for="shift in shifts" :key="shift.key">
             <!-- Time Label (Left) -->
-            <div class="sticky left-0 z-[3] min-h-[100px] flex flex-col items-center justify-center border-b border-r border-gray-100 bg-gray-50">
+            <div class="sticky left-0 z-[3] flex flex-col items-center justify-center border-b border-r border-gray-100 bg-gray-50">
               <div class="text-xs text-gray-600 font-bold">
                 {{ shift.label }}
               </div>
@@ -81,7 +81,7 @@
             <div
               v-for="day in weekDays"
               :key="`${day.date}-${shift.key}`"
-              class="min-h-[100px] border-b border-r border-gray-100 bg-white p-1 last:border-r-0"
+              class="border-b border-r border-gray-100 bg-white p-1 last:border-r-0"
             >
               <div
                 class="relative h-full w-full flex flex-col items-center justify-center overflow-hidden rounded-lg transition-all"
@@ -261,6 +261,16 @@ function getCellClass(slot?: ScheduleSlot) {
 function handleSlotClick(slot?: ScheduleSlot) {
   if (!slot || slot.status === 'unavailable')
     return
+
+  // Check if the slot date is in the past
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+  if (slot.date <= todayStr) {
+    toast.warning('无法修改过去或今天的排班')
+    return
+  }
+
   selectedSlot.value = slot
   showDoctorDrawer.value = true
 }
