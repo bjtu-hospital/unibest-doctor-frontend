@@ -50,27 +50,37 @@ defineProps<Props>()
 .basic-info-card {
   background-color: #fff;
   border-radius: 16rpx;
-  padding: 30rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow:
+    0 2rpx 8rpx rgba(0, 0, 0, 0.04),
+    0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 
   .card-title {
     font-size: 32rpx;
-    font-weight: bold;
+    font-weight: 600;
     color: #333;
     margin-bottom: 24rpx;
     padding-bottom: 16rpx;
-    border-bottom: 2rpx solid #f0f0f0;
+    padding-left: 16rpx;
+    border-bottom: 1rpx solid #eee;
+    border-left: 6rpx solid #333;
   }
 
   .info-content {
     .info-row {
       display: flex;
-      padding: 16rpx 0;
+      padding: 14rpx 0;
       font-size: 28rpx;
+      border-bottom: 1rpx solid #f5f5f5;
+      transition: background-color 0.2s;
+
+      &:last-child {
+        border-bottom: none;
+      }
 
       .label {
-        color: #666;
+        color: #888;
         width: 160rpx;
         flex-shrink: 0;
       }
@@ -79,6 +89,7 @@ defineProps<Props>()
         color: #333;
         flex: 1;
         word-break: break-all;
+        font-weight: 500;
       }
     }
   }

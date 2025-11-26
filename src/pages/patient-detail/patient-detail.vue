@@ -75,16 +75,18 @@ async function fetchPatientDetail() {
 .patient-detail-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-  padding: 20rpx;
+  padding: 24rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
 
   .page-header {
-    padding: 20rpx 0;
-    margin-bottom: 20rpx;
+    padding: 24rpx 8rpx;
+    margin-bottom: 12rpx;
 
     .page-title {
-      font-size: 36rpx;
-      font-weight: bold;
+      font-size: 38rpx;
+      font-weight: 600;
       color: #333;
+      letter-spacing: 1rpx;
     }
   }
 }

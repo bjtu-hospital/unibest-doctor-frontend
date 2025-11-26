@@ -5,14 +5,18 @@
     </view>
     <view class="records-content">
       <view v-if="records && records.length > 0" class="records-list">
-        <view v-for="record in records" :key="record.id" class="record-item">
+        <view v-for="record in records" :key="record.id" class="record-item" @click="goToMedicalRecord(record.id)">
           <view class="record-header">
             <text class="record-date">{{ record.visitDate }}</text>
             <text class="record-status" :class="getStatusClass(record.status)">
-              {{ record.status }}
+              {{ getStatusText(record.status) }}
             </text>
           </view>
           <view class="record-info">
+            <view class="info-row">
+              <text class="info-label">门诊号：</text>
+              <text class="info-value">{{ record.outpatientNo }}</text>
+            </view>
             <view class="info-row">
               <text class="info-label">就诊科室：</text>
               <text class="info-value">{{ record.department }}</text>
@@ -29,10 +33,9 @@
               <text class="info-label">诊断：</text>
               <text class="info-value">{{ record.diagnosis }}</text>
             </view>
-            <view v-if="record.prescription" class="info-row">
-              <text class="info-label">处方：</text>
-              <text class="info-value">{{ record.prescription }}</text>
-            </view>
+          </view>
+          <view class="record-footer">
+            <text class="view-detail">点击查看病历详情 ></text>
           </view>
         </view>
       </view>
@@ -48,17 +51,33 @@ import type { ConsultationRecord } from '../types'
 
 interface Props {
   records?: ConsultationRecord[]
+  patientId?: string
 }
 
 defineProps<Props>()
 
 function getStatusClass(status: string) {
   const statusMap: Record<string, string> = {
-    已完成: 'status-completed',
-    进行中: 'status-ongoing',
-    已取消: 'status-cancelled',
+    completed: 'status-completed',
+    ongoing: 'status-ongoing',
+    cancelled: 'status-cancelled',
   }
   return statusMap[status] || ''
+}
+
+function getStatusText(status: string) {
+  const statusMap: Record<string, string> = {
+    completed: '已完成',
+    ongoing: '进行中',
+    cancelled: '已取消',
+  }
+  return statusMap[status] || status
+}
+
+function goToMedicalRecord(recordId: string) {
+  uni.navigateTo({
+    url: `/pages/patient-detail/medical-record/medical-record?recordId=${recordId}`,
+  })
 }
 </script>
 
@@ -66,29 +85,40 @@ function getStatusClass(status: string) {
 .consultation-records-card {
   background-color: #fff;
   border-radius: 16rpx;
-  padding: 30rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow:
+    0 2rpx 8rpx rgba(0, 0, 0, 0.04),
+    0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 
   .card-title {
     font-size: 32rpx;
-    font-weight: bold;
+    font-weight: 600;
     color: #333;
     margin-bottom: 24rpx;
     padding-bottom: 16rpx;
-    border-bottom: 2rpx solid #f0f0f0;
+    padding-left: 16rpx;
+    border-bottom: 1rpx solid #eee;
+    border-left: 6rpx solid #333;
   }
 
   .records-content {
     .records-list {
       .record-item {
-        background-color: #f8f9fa;
+        background-color: #fafafa;
         border-radius: 12rpx;
         padding: 24rpx;
-        margin-bottom: 16rpx;
+        margin-bottom: 20rpx;
+        border: 1rpx solid #f0f0f0;
+        transition: all 0.2s ease;
 
         &:last-child {
           margin-bottom: 0;
+        }
+
+        &:active {
+          transform: scale(0.98);
+          background-color: #f5f5f5;
         }
 
         .record-header {
@@ -96,8 +126,8 @@ function getStatusClass(status: string) {
           justify-content: space-between;
           align-items: center;
           margin-bottom: 16rpx;
-          padding-bottom: 12rpx;
-          border-bottom: 1rpx solid #e5e5e5;
+          padding-bottom: 14rpx;
+          border-bottom: 1rpx solid #eee;
 
           .record-date {
             font-size: 28rpx;
@@ -107,8 +137,8 @@ function getStatusClass(status: string) {
 
           .record-status {
             font-size: 24rpx;
-            padding: 4rpx 12rpx;
-            border-radius: 8rpx;
+            padding: 6rpx 16rpx;
+            border-radius: 20rpx;
 
             &.status-completed {
               background-color: #e8f5e9;
@@ -139,7 +169,7 @@ function getStatusClass(status: string) {
             }
 
             .info-label {
-              color: #666;
+              color: #888;
               width: 140rpx;
               flex-shrink: 0;
             }
@@ -151,12 +181,24 @@ function getStatusClass(status: string) {
             }
           }
         }
+
+        .record-footer {
+          margin-top: 18rpx;
+          padding-top: 14rpx;
+          border-top: 1rpx solid #eee;
+          text-align: right;
+
+          .view-detail {
+            font-size: 24rpx;
+            color: #666;
+          }
+        }
       }
     }
 
     .empty-records {
       text-align: center;
-      padding: 60rpx 0;
+      padding: 80rpx 0;
 
       .empty-text {
         font-size: 28rpx;

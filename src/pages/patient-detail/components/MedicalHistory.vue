@@ -69,22 +69,29 @@ defineProps<Props>()
 .medical-history-card {
   background-color: #fff;
   border-radius: 16rpx;
-  padding: 30rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow:
+    0 2rpx 8rpx rgba(0, 0, 0, 0.04),
+    0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 
   .card-title {
     font-size: 32rpx;
-    font-weight: bold;
+    font-weight: 600;
     color: #333;
     margin-bottom: 24rpx;
     padding-bottom: 16rpx;
-    border-bottom: 2rpx solid #f0f0f0;
+    padding-left: 16rpx;
+    border-bottom: 1rpx solid #eee;
+    border-left: 6rpx solid #333;
   }
 
   .history-content {
     .history-section {
-      margin-bottom: 24rpx;
+      margin-bottom: 28rpx;
+      padding: 20rpx;
+      background-color: #fafafa;
+      border-radius: 12rpx;
 
       &:last-child {
         margin-bottom: 0;
@@ -94,26 +101,28 @@ defineProps<Props>()
         font-size: 28rpx;
         font-weight: 600;
         color: #333;
-        margin-bottom: 12rpx;
+        margin-bottom: 16rpx;
+        padding-left: 12rpx;
+        border-left: 4rpx solid #666;
       }
 
       .history-list {
         .history-item {
           display: flex;
           align-items: flex-start;
-          padding: 8rpx 0;
+          padding: 10rpx 0;
           font-size: 26rpx;
 
           .dot {
-            color: #1989fa;
+            color: #666;
             margin-right: 12rpx;
-            line-height: 1.5;
+            line-height: 1.6;
           }
 
           .history-text {
             flex: 1;
-            color: #666;
-            line-height: 1.5;
+            color: #555;
+            line-height: 1.6;
           }
         }
       }
@@ -121,7 +130,7 @@ defineProps<Props>()
       .empty-text {
         font-size: 26rpx;
         color: #999;
-        padding: 8rpx 0;
+        padding: 8rpx 12rpx;
       }
     }
   }
