@@ -79,8 +79,10 @@ async function fetchPatientDetail() {
   padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
 
   .page-header {
-    padding: 24rpx 8rpx;
+    padding: 32rpx 24rpx;
     margin-bottom: 12rpx;
+    background: #f0f8ff;
+    border-bottom: 1rpx solid #e6f2ff;
 
     .page-title {
       font-size: 38rpx;

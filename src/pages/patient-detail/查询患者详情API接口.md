@@ -118,6 +118,60 @@
 
 ---
 
+## 2. 生成病历单 PDF
+
+根据就诊记录ID生成病历单PDF文件，返回PDF下载链接。
+
+- **接口地址**: `/medical-record/{recordId}/pdf`
+- **请求方式**: `GET`
+- **请求参数**:
+  - `recordId`: 路径参数，就诊记录ID
+
+- **响应数据**:
+```json
+{
+  "code": 0,
+  "message": {
+    "url": "https://example.com/medical-records/pdf/12345.pdf",
+    "fileName": "病历单_张三_2025-07-05.pdf",
+    "expireTime": "2025-07-06T09:04:00Z"
+  }
+}
+```
+
+### 响应字段说明
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| url | string | PDF文件下载地址 |
+| fileName | string | 建议的文件名 |
+| expireTime | string | 链接过期时间（ISO 8601格式） |
+
+### 错误响应
+
+```json
+{
+  "code": 404,
+  "message": "就诊记录不存在"
+}
+```
+
+### 实现建议
+
+1. **PDF内容**: 参考前端病历单页面的样式，包含：
+   - 医院Logo和名称
+   - 患者基本信息（姓名、性别、年龄、门诊号、就诊日期、科室、医生）
+   - 主诉、现病史、辅助检查、诊断、处置/处方
+   - 医师签名、日期、医院印章
+
+2. **PDF生成方案**:
+   - Java: 使用 iText、Apache PDFBox 或 Flying Saucer (HTML转PDF)
+   - Node.js: 使用 Puppeteer、PDFKit 或 html-pdf
+
+3. **文件存储**: 建议使用OSS等对象存储，设置合理的过期时间
+
+---
+
 ## 数据类型定义（TypeScript）
 
 ```typescript
@@ -201,3 +255,4 @@ export interface PatientDetailData {
 |------|------|----------|--------|
 | v1.0 | 2025-11-26 | 初始版本 | - |
 | v1.1 | 2025-11-26 | 新增门诊号、现病史、辅助检查字段 | - |
+| v1.2 | 2025-11-27 | 新增生成病历单PDF接口文档 | - |

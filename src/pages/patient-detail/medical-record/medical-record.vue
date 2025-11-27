@@ -227,23 +227,60 @@ function fetchRecordDetail() {
 }
 
 // 下载 PDF（调用后端接口生成PDF并下载）
-function downloadPdf() {
-  uni.showToast({
+async function downloadPdf() {
+  uni.showLoading({
     title: '正在生成PDF...',
-    icon: 'loading',
-    duration: 2000,
+    mask: true,
   })
 
-  // TODO: 调用后端接口生成PDF
-  // 后端根据 recordId 生成病历PDF并返回下载链接
-  // const pdfUrl = await api.generateMedicalRecordPdf(recordId.value)
+  try {
+    // TODO: 调用后端接口生成PDF
+    // 后端接口示例: GET /api/medical-record/{recordId}/pdf
+    // 返回: { url: 'https://xxx.com/xxx.pdf' }
+    // const res = await httpGet<{ url: string }>(`/medical-record/${recordId.value}/pdf`)
+    // const pdfUrl = res.url
 
-  setTimeout(() => {
+    // 模拟接口延迟
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    uni.hideLoading()
+
+    // 暂时显示提示
+    uni.showModal({
+      title: 'PDF下载',
+      content: '该功能需要后端支持\n\n接口地址: GET /api/medical-record/{recordId}/pdf\n返回格式: { url: string }',
+      showCancel: false,
+      confirmText: '知道了',
+    })
+
+    // 后端完成后启用以下代码:
+    // #ifdef H5
+    // window.open(pdfUrl, '_blank')
+    // #endif
+
+    // #ifdef MP-WEIXIN
+    // uni.downloadFile({
+    //   url: pdfUrl,
+    //   success: (res) => {
+    //     if (res.statusCode === 200) {
+    //       uni.openDocument({
+    //         filePath: res.tempFilePath,
+    //         fileType: 'pdf',
+    //         showMenu: true,
+    //       })
+    //     }
+    //   },
+    // })
+    // #endif
+  }
+  catch (error) {
+    uni.hideLoading()
+    console.error('生成PDF失败:', error)
     uni.showToast({
-      title: 'PDF功能开发中',
+      title: '生成失败',
       icon: 'none',
     })
-  }, 1000)
+  }
 }
 </script>
 
