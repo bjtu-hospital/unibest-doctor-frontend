@@ -105,7 +105,7 @@ function getCellClass(item: ScheduleItem) {
     classes.push('bg-white border-blue-100 text-gray-800')
   }
   else {
-    classes.push('bg-gray-50 border-gray-100 text-gray-400 pointer-events-none')
+    classes.push('bg-gray-50 border-gray-100 text-gray-400')
   }
 
   return classes.join(' ')
@@ -121,15 +121,11 @@ function getStatusColor(status: LeaveStatus) {
 }
 
 function handleDateClick(item: ScheduleItem) {
-  if (!item.hasShift)
-    return
-
-  const targetDate = new Date(item.date)
   const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
   // 只能申请明天及以后的假期
-  if (targetDate <= today) {
+  if (item.date <= todayStr) {
     toast.warning('只能申请明天及以后的假期')
     return
   }

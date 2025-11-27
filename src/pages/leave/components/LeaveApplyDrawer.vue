@@ -178,22 +178,12 @@ watch(visible, (val) => {
 })
 
 const shiftOptions = computed(() => {
-  const options: { label: string, value: ShiftType }[] = [{ label: '全天', value: 'full' }]
-
-  if (props.selectedDate?.shiftInfo?.includes('上午')) {
-    options.push({ label: '上午', value: 'morning' })
-  }
-  if (props.selectedDate?.shiftInfo?.includes('下午')) {
-    options.push({ label: '下午', value: 'afternoon' })
-  }
-
-  // Fallback if no specific info parsed, or just show all for demo
-  if (options.length === 1) {
-    options.push({ label: '上午', value: 'morning' })
-    options.push({ label: '下午', value: 'afternoon' })
-  }
-
-  return options
+  return [
+    { label: '全天', value: 'full' },
+    { label: '上午', value: 'morning' },
+    { label: '下午', value: 'afternoon' },
+    { label: '晚间', value: 'night' },
+  ] as { label: string, value: ShiftType }[]
 })
 
 function formatDate(dateStr?: string) {
