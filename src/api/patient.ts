@@ -3,7 +3,7 @@ import { httpGet } from '@/http/http'
 import { mockPatientDetail } from '@/pages/patient-detail/mock'
 
 // Mock 开关
-const USE_MOCK = true
+const USE_MOCK = false
 
 // 请求缓存
 const requestCache = new Map<string, { data: any, timestamp: number }>()
@@ -52,7 +52,7 @@ export function getPatientDetail(patientId: string): Promise<PatientDetailData> 
 
   // 发起新请求
   console.log('发起新API请求:', cacheKey)
-  const requestPromise = httpGet<PatientDetailData>(`/patient/${patientId}`)
+  const requestPromise = httpGet<PatientDetailData>(`/doctor/patient/${patientId}`)
     .then((response) => {
       // 缓存响应数据
       requestCache.set(cacheKey, {
