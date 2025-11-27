@@ -172,7 +172,7 @@
 import type { BasicInfo, ConsultationRecord } from '../types'
 import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
-import { mockPatientDetail } from '../mock'
+import { getPatientDetail } from '@/api/patient'
 
 definePage({
   style: {
@@ -189,29 +189,43 @@ const loading = ref(true)
 // 接收页面参数
 onLoad((options) => {
   console.log('病历详情页 onLoad, 参数:', options)
-  if (options?.recordId) {
+  if (options?.recordId && options?.patientId) {
     recordId.value = options.recordId as string
-    patientId.value = options.patientId as string || ''
+    patientId.value = options.patientId as string
     fetchRecordDetail()
   }
   else {
     loading.value = false
     uni.showToast({
-      title: '缺少记录ID',
+      title: '缺少必要参数',
       icon: 'none',
     })
+    console.error('缺少参数:', { recordId: options?.recordId, patientId: options?.patientId })
   }
 })
 
-// 获取病历详情数据
-function fetchRecordDetail() {
+// 获取病历详情数据（使用真实API）
+async function fetchRecordDetail() {
   loading.value = true
-  // TODO: 替换为真实API调用
-  setTimeout(() => {
-    const mockData = mockPatientDetail
-    patientInfo.value = mockData.basicInfo
+  try {
+    // 调用真实API获取患者详情
+    const data = await getPatientDetail(patientId.value)
+    console.log('获取到的患者数据:', data)
 
-    const record = mockData.consultationRecords.find(r => r.id === recordId.value)
+    patientInfo.value = data.basicInfo
+
+    // 检查就诊记录是否存在
+    if (!data.consultationRecords || data.consultationRecords.length === 0) {
+      uni.showToast({
+        title: '该患者暂无就诊记录',
+        icon: 'none',
+      })
+      loading.value = false
+      return
+    }
+
+    // 从就诊记录中找到对应的记录
+    const record = data.consultationRecords.find(r => r.id === recordId.value)
     if (record) {
       recordData.value = record
       console.log('病历详情获取成功:', record)
@@ -222,8 +236,17 @@ function fetchRecordDetail() {
         icon: 'none',
       })
     }
+  }
+  catch (error) {
+    console.error('获取病历详情失败:', error)
+    uni.showToast({
+      title: '获取病历详情失败',
+      icon: 'none',
+    })
+  }
+  finally {
     loading.value = false
-  }, 500)
+  }
 }
 
 // 下载 PDF（调用后端接口生成PDF并下载）
