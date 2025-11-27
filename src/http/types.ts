@@ -19,7 +19,7 @@ export interface HttpRequestResult<T> {
 export type IResponse<T = any> = {
   code: number
   data: T
-  message: string
+  message: string | T
   [key: string]: any // 允许额外属性
 } | {
   code: number
