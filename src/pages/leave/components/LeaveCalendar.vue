@@ -29,24 +29,52 @@
       <div
         v-for="item in schedule"
         :key="item.date"
-        class="relative h-20 flex flex-col items-center justify-center border rounded-lg transition-all"
+        class="relative h-20 flex flex-col items-center justify-center overflow-hidden border rounded-lg transition-all"
         :class="getCellClass(item)"
         @click="handleDateClick(item)"
       >
         <span class="text-lg font-bold">{{ item.day }}</span>
-        <span v-if="item.shiftInfo" class="mt-1 scale-90 text-xs">{{ item.shiftInfo }}</span>
 
-        <!-- Status Icons/Indicators -->
-        <div v-if="item.leaveStatus" class="absolute bottom-0 left-0 top-0 w-1 rounded-l-lg" :class="getStatusColor(item.leaveStatus)" />
-        <div v-if="item.leaveStatus === 'approved'" class="absolute right-1 top-1 text-xs text-green-500">
-          ✓
-        </div>
-        <div v-if="item.leaveStatus === 'pending'" class="absolute right-1 top-1 text-xs text-yellow-500">
-          🕒
-        </div>
-        <div v-if="item.leaveStatus === 'rejected'" class="absolute right-1 top-1 text-xs text-red-500">
-          ✕
-        </div>
+        <!-- Full Day Leave Display -->
+        <template v-if="item.leaveStatus">
+          <span class="mt-1 text-xs font-bold">全天请假</span>
+          <!-- Status Icon for Full Day -->
+          <div v-if="item.leaveStatus === 'approved'" class="absolute right-1 top-1 text-xs font-bold">
+            ✓
+          </div>
+          <div v-if="item.leaveStatus === 'pending'" class="absolute right-1 top-1 text-xs">
+            🕒
+          </div>
+          <div v-if="item.leaveStatus === 'rejected'" class="absolute right-1 top-1 text-xs font-bold">
+            ✕
+          </div>
+        </template>
+
+        <!-- Partial Day / Normal Display -->
+        <template v-else>
+          <span v-if="item.shiftInfo" class="mt-1 scale-90 text-xs">{{ item.shiftInfo }}</span>
+
+          <!-- Calculated Partial Status -->
+          <template v-if="getPartialLeaveStatus(item)">
+            <!-- Approved -->
+            <div v-if="getPartialLeaveStatus(item) === 'approved'" class="absolute bottom-0 left-0 top-0 w-1 bg-green-500" />
+            <div v-if="getPartialLeaveStatus(item) === 'approved'" class="absolute right-1 top-1 text-xs text-green-500 font-bold">
+              ✓
+            </div>
+
+            <!-- Pending -->
+            <div v-if="getPartialLeaveStatus(item) === 'pending'" class="absolute bottom-0 left-0 top-0 w-1 bg-yellow-500" />
+            <div v-if="getPartialLeaveStatus(item) === 'pending'" class="absolute right-1 top-1 text-xs text-yellow-500">
+              🕒
+            </div>
+
+            <!-- Rejected -->
+            <div v-if="getPartialLeaveStatus(item) === 'rejected'" class="absolute bottom-0 left-0 top-0 w-1 bg-red-500" />
+            <div v-if="getPartialLeaveStatus(item) === 'rejected'" class="absolute right-1 top-1 text-xs text-red-500 font-bold">
+              ✕
+            </div>
+          </template>
+        </template>
       </div>
     </div>
     <wd-toast />
@@ -95,29 +123,53 @@ function nextMonth() {
   fetchSchedule()
 }
 
+function getPartialLeaveStatus(item: ScheduleItem): LeaveStatus | null {
+  if (!item.shiftLeaveStatuses || item.shiftLeaveStatuses.length === 0)
+    return null
+
+  const statuses = item.shiftLeaveStatuses.map(s => s.leaveStatus)
+
+  if (statuses.includes('pending'))
+    return 'pending'
+  if (statuses.includes('approved'))
+    return 'approved'
+  if (statuses.includes('rejected'))
+    return 'rejected'
+
+  return null
+}
+
 function getCellClass(item: ScheduleItem) {
   const classes = []
 
-  if (item.isToday) {
-    classes.push('bg-blue-50 border-blue-200')
+  // 1. 全天请假 (Full Day Leave) - 优先级最高，覆盖背景
+  if (item.leaveStatus) {
+    if (item.leaveStatus === 'approved') {
+      classes.push('bg-green-100 border-green-200 text-green-800')
+    }
+    else if (item.leaveStatus === 'pending') {
+      classes.push('bg-yellow-100 border-yellow-200 text-yellow-800')
+    }
+    else if (item.leaveStatus === 'rejected') {
+      classes.push('bg-red-100 border-red-200 text-red-800')
+    }
+    return classes.join(' ')
   }
+
+  // 2. 今天：蓝色背景高亮
+  if (item.isToday) {
+    classes.push('bg-blue-50 border-blue-200 text-blue-600')
+  }
+  // 3. 有排班未请假 (或分段请假)：白色背景 + 蓝色边框
   else if (item.hasShift) {
     classes.push('bg-white border-blue-100 text-gray-800')
   }
+  // 4. 无排班：灰色背景 + 灰色文字
   else {
     classes.push('bg-gray-50 border-gray-100 text-gray-400')
   }
 
   return classes.join(' ')
-}
-
-function getStatusColor(status: LeaveStatus) {
-  switch (status) {
-    case 'approved': return 'bg-green-500'
-    case 'pending': return 'bg-yellow-500'
-    case 'rejected': return 'bg-red-500'
-    default: return ''
-  }
 }
 
 function handleDateClick(item: ScheduleItem) {
