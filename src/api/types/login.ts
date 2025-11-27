@@ -78,6 +78,13 @@ export interface IUpdatePassword {
   confirmPassword: string
 }
 
+export interface IStaffLoginForm {
+  identifier: string
+  password: string
+}
+
+export type IStaffLoginRes = string
+
 /**
  * 判断是否为单Token响应
  * @param tokenRes 登录响应数据

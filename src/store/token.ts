@@ -1,13 +1,14 @@
 import type {
   ILoginForm,
 } from '@/api/login'
-import type { IAuthLoginRes } from '@/api/types/login'
+import type { IAuthLoginRes, ISingleTokenRes, IStaffLoginForm } from '@/api/types/login'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue' // 修复：导入 computed
 import {
   login as _login,
   logout as _logout,
   refreshToken as _refreshToken,
+  staffLogin as _staffLogin,
   wxLogin as _wxLogin,
   getWxCode,
 } from '@/api/login'
@@ -109,6 +110,37 @@ export const useTokenStore = defineStore(
         const res = await _login(loginForm)
         console.log('普通登录-res: ', res)
         await _postLogin(res)
+        uni.showToast({
+          title: '登录成功',
+          icon: 'success',
+        })
+        return res
+      }
+      catch (error) {
+        console.error('登录失败:', error)
+        uni.showToast({
+          title: '登录失败，请重试',
+          icon: 'error',
+        })
+        throw error
+      }
+    }
+
+    /**
+     * 员工登录
+     * @param loginForm 登录参数
+     * @returns 登录结果
+     */
+    const loginStaff = async (loginForm: IStaffLoginForm) => {
+      try {
+        const res = await _staffLogin(loginForm)
+        console.log('员工登录-res: ', res)
+        // 转换为 ISingleTokenRes 格式
+        const tokenRes: ISingleTokenRes = {
+          token: res,
+          expiresIn: 7 * 24 * 60 * 60, // 默认7天
+        }
+        await _postLogin(tokenRes)
         uni.showToast({
           title: '登录成功',
           icon: 'success',
@@ -270,6 +302,7 @@ export const useTokenStore = defineStore(
     return {
       // 核心API方法
       login,
+      loginStaff,
       wxLogin,
       logout,
 

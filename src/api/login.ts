@@ -1,4 +1,4 @@
-import type { IAuthLoginRes, ICaptcha, IDoubleTokenRes, IUpdateInfo, IUpdatePassword, IUserInfoRes } from './types/login'
+import type { IAuthLoginRes, ICaptcha, IDoubleTokenRes, IStaffLoginForm, IStaffLoginRes, IUpdateInfo, IUpdatePassword, IUserInfoRes } from './types/login'
 import { http } from '@/http/http'
 
 /**
@@ -82,4 +82,20 @@ export function getWxCode() {
  */
 export function wxLogin(data: { code: string }) {
   return http.post<IAuthLoginRes>('/auth/wxLogin', data)
+}
+
+/**
+ * 员工登录
+ * @param loginForm 登录表单
+ */
+export function staffLogin(loginForm: IStaffLoginForm) {
+  return http.post<IStaffLoginRes>('/auth/staff/login', loginForm)
+}
+
+/**
+ * Swagger OAuth2 登录
+ * @param loginForm 登录表单
+ */
+export function swaggerLogin(loginForm: IStaffLoginForm) {
+  return http.post<IStaffLoginRes>('/auth/swagger-login', loginForm)
 }
