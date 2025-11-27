@@ -126,7 +126,7 @@
         取消修改
       </button>
       <button class="flex-1 rounded-full bg-blue-500 py-3 text-sm text-white font-bold shadow-blue-200 shadow-lg transition-transform active:scale-95" @click="handleSaveClick">
-        保存并通知医生
+        提交调整申请
       </button>
     </div>
 
@@ -152,7 +152,7 @@
 import type { ClinicType, Doctor, ScheduleSlot, ShiftType } from '@/types/schedule'
 import { computed, onMounted, ref } from 'vue'
 import { useToast } from 'wot-design-uni'
-import { getClinicList, getScheduleList, saveSchedule } from '@/service/schedule'
+import { getClinicList, getScheduleList, submitScheduleChange } from '@/service/schedule'
 import DoctorSelectDrawer from './components/DoctorSelectDrawer.vue'
 import SaveConfirmDialog from './components/SaveConfirmDialog.vue'
 
@@ -314,16 +314,16 @@ function handleSaveClick() {
 
 async function handleSaveConfirm() {
   saving.value = true
-  const success = await saveSchedule(currentClinicId.value, modifiedSlots.value)
+  const success = await submitScheduleChange(currentClinicId.value, modifiedSlots.value)
   saving.value = false
 
   if (success) {
     showSaveDialog.value = false
-    toast.success('排班保存成功！')
+    toast.success('申请已提交，等待审核')
     // Reset modified flags if needed
   }
   else {
-    toast.error('保存失败')
+    toast.error('提交失败')
   }
 }
 

@@ -95,7 +95,19 @@ export const useTokenStore = defineStore(
     async function _postLogin(tokenInfo: IAuthLoginRes) {
       setTokenInfo(tokenInfo)
       const userStore = useUserStore()
-      await userStore.fetchUserInfo()
+      try {
+        await userStore.fetchUserInfo()
+      }
+      catch (error) {
+        console.warn('获取用户信息失败，可能是接口不存在或未配置，使用默认信息继续流程', error)
+        // 设置一个临时的默认用户信息，防止页面报错
+        userStore.setUserInfo({
+          userId: 0,
+          username: 'Doctor',
+          nickname: '医生',
+          avatar: '',
+        })
+      }
     }
 
     /**

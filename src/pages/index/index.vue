@@ -1,54 +1,57 @@
+<template>
+  <div class="min-h-screen flex flex-col bg-gray-50">
+    <wd-navbar title="工作台" placeholder safe-area-inset-top fixed :left-arrow="false" />
+
+    <div class="flex-1 p-4">
+      <div class="mb-4 rounded-lg bg-white p-6 shadow-sm">
+        <div class="text-lg text-gray-800 font-bold">
+          欢迎回来，李医生
+        </div>
+        <div class="mt-2 text-sm text-gray-500">
+          今天是 2025年11月27日，祝您工作愉快
+        </div>
+      </div>
+
+      <!-- Quick Actions Grid -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col items-center justify-center rounded-lg bg-white p-6 shadow-sm active:bg-gray-50" @click="navigateTo('/pages/schedule/index')">
+          <div class="i-carbon-calendar mb-2 text-3xl text-blue-500" />
+          <div class="text-sm text-gray-700 font-bold">
+            排班管理
+          </div>
+        </div>
+        <div class="flex flex-col items-center justify-center rounded-lg bg-white p-6 shadow-sm active:bg-gray-50" @click="navigateTo('/pages/leave/index')">
+          <div class="i-carbon-plane mb-2 text-3xl text-orange-500" />
+          <div class="text-sm text-gray-700 font-bold">
+            请假申请
+          </div>
+        </div>
+        <div class="flex flex-col items-center justify-center rounded-lg bg-white p-6 shadow-sm active:bg-gray-50" @click="navigateTo('/pages/approval/index')">
+          <div class="i-carbon-checkbox-checked mb-2 text-3xl text-green-500" />
+          <div class="text-sm text-gray-700 font-bold">
+            审批中心
+          </div>
+        </div>
+        <div class="flex flex-col items-center justify-center rounded-lg bg-white p-6 shadow-sm active:bg-gray-50">
+          <div class="i-carbon-user-md mb-2 text-3xl text-purple-500" />
+          <div class="text-sm text-gray-700 font-bold">
+            我的排班
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script lang="ts" setup>
 defineOptions({
   name: 'Home',
 })
-definePage({
-  // 使用 type: "home" 属性设置首页，其他页面不需要设置，默认为page
-  type: 'home',
-  style: {
-    // 'custom' 表示开启自定义导航栏，默认 'default'
-    navigationStyle: 'custom',
-    navigationBarTitleText: '%tabbar.home%',
-  },
-})
 
-const description = ref(
-  'unibest 是一个集成了多种工具和技术的 uniapp 开发模板，由 uniapp + Vue3 + Ts + Vite5 + UnoCss + VSCode 构建，模板具有代码提示、自动格式化、统一配置、代码片段等功能，并内置了许多常用的基本组件和基本功能，让你编写 uniapp 拥有 best 体验。',
-)
-console.log('index/index 首页打印了')
-
-onLoad(() => {
-  console.log('测试 uni API 自动引入: onLoad')
-})
+function navigateTo(url: string) {
+  uni.navigateTo({ url })
+}
 </script>
 
-<template>
-  <view class="bg-white px-4 pt-safe">
-    <view class="mt-10">
-      <image src="/static/logo.svg" alt="" class="mx-auto block h-28 w-28" />
-    </view>
-    <view class="mt-4 text-center text-4xl text-[#d14328]">
-      unibest
-    </view>
-    <view class="mb-8 mt-2 text-center text-2xl">
-      最好用的 uniapp 开发模板
-    </view>
-
-    <view class="m-auto mb-2 max-w-100 text-justify indent text-4">
-      {{ description }}
-    </view>
-    <view class="mt-4 text-center">
-      作者：
-      <text class="text-green-500">
-        菲鸽
-      </text>
-    </view>
-    <view class="mt-4 text-center">
-      官网地址：
-      <text class="text-green-500">
-        https://unibest.tech
-      </text>
-    </view>
-  </view>
-  <tabbar />
-</template>
+<style scoped>
+</style>

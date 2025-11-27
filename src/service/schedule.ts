@@ -68,11 +68,11 @@ export const getAvailableDoctors = async (date: string, shift: string): Promise<
   })
 }
 
-export const saveSchedule = async (clinicId: string, changes: ScheduleSlot[]): Promise<boolean> => {
-  // 模拟后端请求：保存排班修改
+export const submitScheduleChange = async (clinicId: string, changes: ScheduleSlot[]): Promise<boolean> => {
+  // 模拟后端请求：提交排班调整申请
   return new Promise((resolve) => {
     setTimeout(() => {
-      console.log('Saving schedule for clinic:', clinicId, 'Changes:', changes)
+      console.log('Submitting schedule change request for clinic:', clinicId, 'Changes:', changes)
       resolve(true)
     }, 800)
   })

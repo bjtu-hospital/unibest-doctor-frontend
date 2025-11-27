@@ -7,12 +7,12 @@
   >
     <div class="flex flex-col items-center bg-white p-6">
       <div class="mb-6 flex items-center gap-2 text-xl text-blue-600 font-bold">
-        <div class="i-carbon-save" /> 确认保存排班
+        <div class="i-carbon-send-alt" /> 确认提交申请
       </div>
 
       <div class="mb-6 w-full rounded-lg bg-gray-50 p-4 text-sm space-y-2">
         <div class="mb-2 text-gray-700 font-bold">
-          本次修改涉及：
+          本次申请涉及：
         </div>
         <div class="flex justify-between text-gray-600">
           <span>新增排班</span>
@@ -38,8 +38,8 @@
       </div>
 
       <div class="mb-6 w-full flex items-center gap-2 px-2">
-        <div class="i-carbon-checkbox-checked text-lg text-blue-500" />
-        <span class="text-sm text-gray-600">保存后立即通知相关医生</span>
+        <div class="i-carbon-information text-lg text-blue-500" />
+        <span class="text-sm text-gray-600">提交后需等待管理员审核</span>
       </div>
 
       <div class="w-full flex gap-4">
@@ -48,7 +48,7 @@
         </button>
         <button class="flex flex-1 items-center justify-center gap-2 rounded-full bg-blue-500 py-2.5 text-sm text-white font-bold" @click="handleConfirm">
           <div v-if="loading" class="i-carbon-circle-dash animate-spin" />
-          {{ loading ? '保存中...' : '确认保存' }}
+          {{ loading ? '提交中...' : '确认提交' }}
         </button>
       </div>
     </div>
