@@ -134,6 +134,7 @@
     <DoctorSelectDrawer
       v-model="showDoctorDrawer"
       :target-slot="selectedSlot"
+      :clinic-id="currentClinicId"
       @select="handleDoctorSelect"
     />
 
@@ -196,7 +197,7 @@ const weekDays = computed(() => {
     const d = new Date(start)
     d.setDate(start.getDate() + i)
     days.push({
-      date: d.toISOString().split('T')[0],
+      date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
       dateStr: `${d.getMonth() + 1}/${d.getDate()}`,
       weekName: weekNames[i],
     })

@@ -1,4 +1,7 @@
-import type { ClinicType, Doctor, ScheduleSlot, WeekInfo } from '@/types/schedule'
+import { http } from '@/http/http'
+import type { ClinicType, Doctor, ScheduleSlot } from '@/types/schedule'
+
+const USE_MOCK = false
 
 // Mock Data
 const mockClinics: ClinicType[] = [
@@ -16,64 +19,148 @@ const mockDoctors: Doctor[] = [
 
 // Service Functions
 
-export const getClinicList = async (): Promise<ClinicType[]> => {
-  // 模拟后端请求
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([...mockClinics])
-    }, 300)
-  })
+export async function getClinicList(): Promise<ClinicType[]> {
+  if (USE_MOCK) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([...mockClinics])
+      }, 300)
+    })
+  }
+
+  try {
+    const res = await http.get<any>('/doctor/schedule/clinics')
+    const list = Array.isArray(res) ? res : (res?.clinics || [])
+    return list.map((item: any) => ({
+      id: String(item.id),
+      name: item.name,
+      totalSlots: item.totalSlots || item.total_slots || 0,
+      filledSlots: item.filledSlots || item.filled_slots || 0,
+    }))
+  }
+  catch (error) {
+    console.error('Failed to fetch clinic list:', error)
+    return []
+  }
 }
 
-export const getScheduleList = async (clinicId: string, startDate: string): Promise<ScheduleSlot[]> => {
-  // 模拟后端请求：根据门诊ID和开始日期获取排班表
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const slots: ScheduleSlot[] = []
-      const start = new Date(startDate)
-      
-      for (let i = 0; i < 7; i++) {
-        const currentDate = new Date(start)
-        currentDate.setDate(start.getDate() + i)
-        const dateStr = currentDate.toISOString().split('T')[0]
-        
-        // Mock: 随机生成一些排班
-        const shifts: ('morning' | 'afternoon' | 'night')[] = ['morning', 'afternoon', 'night']
-        shifts.forEach(shift => {
-          const isFilled = Math.random() > 0.5
-          const doctor = isFilled ? mockDoctors[Math.floor(Math.random() * mockDoctors.length)] : undefined
-          
-          slots.push({
-            date: dateStr,
-            dayOfWeek: i + 1,
-            shift,
-            status: isFilled ? 'filled' : 'empty',
-            doctorId: doctor?.id,
-            doctorName: doctor?.name,
-            doctorTitle: doctor?.title
+export async function getScheduleList(clinicId: string, startDate: string): Promise<ScheduleSlot[]> {
+  if (USE_MOCK) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const slots: ScheduleSlot[] = []
+        const start = new Date(startDate)
+
+        for (let i = 0; i < 7; i++) {
+          const currentDate = new Date(start)
+          currentDate.setDate(start.getDate() + i)
+          const dateStr = currentDate.toISOString().split('T')[0]
+
+          // Mock: 随机生成一些排班
+          const shifts: ('morning' | 'afternoon' | 'night')[] = ['morning', 'afternoon', 'night']
+          shifts.forEach((shift) => {
+            const isFilled = Math.random() > 0.5
+            const doctor = isFilled ? mockDoctors[Math.floor(Math.random() * mockDoctors.length)] : undefined
+
+            slots.push({
+              date: dateStr,
+              dayOfWeek: i + 1,
+              shift,
+              status: isFilled ? 'filled' : 'empty',
+              doctorId: doctor?.id,
+              doctorName: doctor?.name,
+              doctorTitle: doctor?.title,
+            })
           })
-        })
-      }
-      resolve(slots)
-    }, 500)
-  })
+        }
+        resolve(slots)
+      }, 500)
+    })
+  }
+
+  try {
+    const res = await http.get<any>('/doctor/schedule/list', {
+      clinicId,
+      startDate,
+    })
+
+    const list = Array.isArray(res) ? res : (res?.schedule || [])
+    return list.map((item: any) => ({
+      date: item.date,
+      dayOfWeek: new Date(item.date).getDay() || 7,
+      shift: item.shift,
+      status: item.status, // 'empty' | 'filled' | 'unavailable'
+      doctorId: item.doctorId ? String(item.doctorId) : (item.doctor_id ? String(item.doctor_id) : undefined),
+      doctorName: item.doctorName || item.doctor_name,
+      doctorTitle: item.doctorTitle || item.doctor_title,
+    }))
+  }
+  catch (error) {
+    console.error('Failed to fetch schedule list:', error)
+    return []
+  }
 }
 
-export const getAvailableDoctors = async (date: string, shift: string): Promise<Doctor[]> => {
-  // 模拟后端请求：获取某天某班次可用的医生列表（包含冲突和请假状态）
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([...mockDoctors])
-    }, 300)
-  })
+export async function getAvailableDoctors(clinicId: string, date: string, shift: string): Promise<Doctor[]> {
+  if (USE_MOCK) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([...mockDoctors])
+      }, 300)
+    })
+  }
+
+  try {
+    const res = await http.get<any>('/doctor/schedule/available-doctors', {
+      clinicId,
+      date,
+      shift,
+    })
+
+    const list = Array.isArray(res) ? res : (res?.doctors || [])
+    return list.map((item: any) => ({
+      id: String(item.id),
+      name: item.name,
+      title: item.title,
+      dept: item.department,
+      status: item.status, // 'available' | 'conflict' | 'leave'
+      conflictReason: item.conflictReason || item.conflict_reason,
+      leaveReason: item.leaveReason || item.leave_reason,
+      assignedCount: item.assignedCount || item.assigned_count || 0,
+    }))
+  }
+  catch (error) {
+    console.error('Failed to fetch available doctors:', error)
+    return []
+  }
 }
 
-export const submitScheduleChange = async (clinicId: string, changes: ScheduleSlot[]): Promise<boolean> => {
-  // 模拟后端请求：提交排班调整申请
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log('Submitting schedule change request for clinic:', clinicId, 'Changes:', changes)
-      resolve(true)
-    }, 800)
-  })
+export async function submitScheduleChange(clinicId: string, changes: ScheduleSlot[]): Promise<boolean> {
+  if (USE_MOCK) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log('Submitting schedule change request for clinic:', clinicId, 'Changes:', changes)
+        resolve(true)
+      }, 800)
+    })
+  }
+
+  try {
+    const payload = {
+      clinicId,
+      changes: changes.map(c => ({
+        date: c.date,
+        shift: c.shift,
+        doctorId: c.doctorId,
+        status: c.status,
+      })),
+    }
+
+    await http.post('/doctor/schedule/submit-change', payload)
+    return true
+  }
+  catch (error) {
+    console.error('Failed to submit schedule change:', error)
+    return false
+  }
 }
