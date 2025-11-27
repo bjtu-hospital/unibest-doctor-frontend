@@ -96,7 +96,7 @@
 <script setup lang="ts">
 import type { SearchPatientResult } from '@/api/types/doctor'
 import { computed, ref, watch } from 'vue'
-import { searchPatients } from '@/api/doctor'
+import { searchPatientsExact } from '@/api/doctor'
 
 const props = defineProps<{
   visible: boolean
@@ -144,7 +144,7 @@ async function handleSearch() {
   if (!searchKeyword.value)
     return
   try {
-    const res = await searchPatients(searchKeyword.value)
+    const res = await searchPatientsExact(searchKeyword.value)
     searchResults.value = res.patients
     hasSearched.value = true
   }
