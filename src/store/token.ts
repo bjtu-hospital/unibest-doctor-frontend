@@ -101,11 +101,19 @@ export const useTokenStore = defineStore(
       catch (error) {
         console.warn('获取用户信息失败，可能是接口不存在或未配置，使用默认信息继续流程', error)
         // 设置一个临时的默认用户信息，防止页面报错
+        // 注意：这里默认是普通医生权限，如果接口失败，科室长也会变成普通医生
         userStore.setUserInfo({
-          userId: 0,
-          username: 'Doctor',
-          nickname: '医生',
-          avatar: '',
+          doctor: {
+            id: 0,
+            name: '医生',
+            department: '未知科室',
+            department_id: '0',
+            hospital: '未知院区',
+            title: '未知职称',
+            is_department_head: 'False',
+            photo_mime: '',
+            photo_base64: '',
+          },
         })
       }
     }

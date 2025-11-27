@@ -21,14 +21,31 @@ export interface IDoubleTokenRes {
 export type IAuthLoginRes = ISingleTokenRes | IDoubleTokenRes
 
 /**
- * 用户信息
+ * 医生信息
+ */
+export interface IDoctorInfo {
+  id: number
+  name: string
+  department: string
+  department_id: string
+  hospital: string
+  title: string
+  is_department_head: string // "True" | "False"
+  photo_mime: string
+  photo_base64: string
+}
+
+/**
+ * 用户信息响应
  */
 export interface IUserInfoRes {
-  userId: number
-  username: string
-  nickname: string
+  doctor: IDoctorInfo
+  // 兼容旧字段（可选）
+  userId?: number
+  username?: string
+  nickname?: string
   avatar?: string
-  [key: string]: any // 允许其他扩展字段
+  [key: string]: any
 }
 
 // 认证存储数据结构
