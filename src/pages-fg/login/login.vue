@@ -47,7 +47,7 @@ async function doLogin() {
       <input
         v-model="identifier"
         class="w-full border border-gray-300 rounded p-3"
-        placeholder="请输入工号/手机号"
+        placeholder="请输入工号"
       >
     </view>
     <view class="mb-6">

@@ -7,10 +7,17 @@ import {
 
 // 初始化状态
 const userInfoState: IUserInfoRes = {
-  userId: -1,
-  username: '',
-  nickname: '',
-  avatar: '/static/images/default-avatar.png',
+  doctor: {
+    id: -1,
+    name: '',
+    department: '',
+    department_id: '',
+    hospital: '',
+    title: '',
+    is_department_head: 'False',
+    photo_mime: '',
+    photo_base64: '',
+  },
 }
 
 export const useUserStore = defineStore(
@@ -18,19 +25,22 @@ export const useUserStore = defineStore(
   () => {
     // 定义用户信息
     const userInfo = ref<IUserInfoRes>({ ...userInfoState })
+
+    // 是否是科室长
+    const isDepartmentHead = computed(() => {
+      const isHead = userInfo.value.doctor?.is_department_head
+      // 兼容字符串 "True" 和布尔值 true
+      return String(isHead) === 'True' || String(isHead) === 'true'
+    })
+
     // 设置用户信息
     const setUserInfo = (val: IUserInfoRes) => {
       console.log('设置用户信息', val)
-      // 若头像为空 则使用默认头像
-      if (!val.avatar) {
-        val.avatar = userInfoState.avatar
-      }
       userInfo.value = val
     }
     const setUserAvatar = (avatar: string) => {
-      userInfo.value.avatar = avatar
+      // userInfo.value.avatar = avatar
       console.log('设置用户头像', avatar)
-      console.log('userInfo', userInfo.value)
     }
     // 删除用户信息
     const clearUserInfo = () => {
@@ -49,6 +59,7 @@ export const useUserStore = defineStore(
 
     return {
       userInfo,
+      isDepartmentHead,
       clearUserInfo,
       fetchUserInfo,
       setUserInfo,
