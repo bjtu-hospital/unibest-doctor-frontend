@@ -15,7 +15,7 @@ const i18n = createI18n({
 })
 
 console.log(uni.getLocale())
-console.log(i18n.global.locale)
+// console.log(i18n.global.locale)
 
 /**
  * 可以拿到原始的语言模板，非 vue 文件使用这个方法，
@@ -28,7 +28,7 @@ export function getTemplateByKey(key: string) {
     return ''
   }
   const locale = uni.getLocale()
-  console.log('locale:', locale)
+  // console.log('locale:', locale)
 
   const message = messages[locale] // 拿到某个多语言的所有模板（是一个对象)
   if (Object.keys(message).includes(key)) {
@@ -55,6 +55,8 @@ export function getTemplateByKey(key: string) {
  * @returns
  */
 function formatI18n(template: string, data?: any) {
+  if (!template)
+    return ''
   return template.replace(/\{([^}]+)\}/g, (match, key: string) => {
     // console.log( match, key) // => { detail.height }  detail.height
     const arr = key.trim().split('.')

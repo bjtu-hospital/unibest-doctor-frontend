@@ -123,8 +123,8 @@ export function getCurrentPageI18nKey() {
       return ''
     }
   }
-  console.log(currPage)
-  console.log(currPage.style.navigationBarTitleText)
+  // console.log(currPage)
+  // console.log(currPage.style?.navigationBarTitleText)
   return currPage.style?.navigationBarTitleText || ''
 }
 
