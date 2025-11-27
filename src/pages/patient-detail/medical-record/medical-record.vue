@@ -173,6 +173,7 @@ import type { BasicInfo, ConsultationRecord } from '../types'
 import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 import { getPatientDetail } from '@/api/patient'
+import { httpPost } from '@/http/http'
 
 definePage({
   style: {
@@ -249,58 +250,102 @@ async function fetchRecordDetail() {
   }
 }
 
-// 下载 PDF（调用后端接口生成PDF并下载）
+// 下载 PDF（调用后端接口）
 async function downloadPdf() {
+  if (!recordId.value) {
+    uni.showToast({
+      title: '缺少病历ID',
+      icon: 'none',
+    })
+    return
+  }
+
   uni.showLoading({
     title: '正在生成PDF...',
     mask: true,
   })
 
   try {
-    // TODO: 调用后端接口生成PDF
-    // 后端接口示例: GET /api/medical-record/{recordId}/pdf
-    // 返回: { url: 'https://xxx.com/xxx.pdf' }
-    // const res = await httpGet<{ url: string }>(`/medical-record/${recordId.value}/pdf`)
-    // const pdfUrl = res.url
+    console.log('准备生成PDF, recordId:', recordId.value)
 
-    // 模拟接口延迟
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    // 调用后端接口生成PDF (POST方法)
+    // 正确路径: /common/medical-record/{visit_id}/pdf
+    const res = await httpPost<any>(`/common/medical-record/${recordId.value}/pdf`)
+
+    console.log('后端返回完整数据:', res)
+
+    // 检查返回码
+    const resData = res as any
+    if (resData.code && resData.code !== 0) {
+      uni.hideLoading()
+      // 显示后端返回的错误信息
+      const errorDetail = resData.message?.detail || resData.message?.error || resData.message || 'PDF生成失败'
+      console.error('后端返回错误:', errorDetail)
+      uni.showToast({
+        title: String(errorDetail),
+        icon: 'none',
+        duration: 3000,
+      })
+      return
+    }
+
+    // 解析PDF URL
+    let pdfUrl = resData?.url || resData?.data?.url || resData?.message?.url
+    const fileName = resData?.fileName || resData?.data?.fileName || resData?.message?.fileName
+
+    // 拼接完整URL
+    if (pdfUrl && !pdfUrl.startsWith('http')) {
+      const baseUrl = import.meta.env.VITE_SERVER_BASEURL || 'http://127.0.0.1:8000'
+      pdfUrl = `${baseUrl}${pdfUrl}`
+    }
+
+    console.log('PDF URL:', pdfUrl)
 
     uni.hideLoading()
 
-    // 暂时显示提示
+    if (!pdfUrl) {
+      uni.showToast({
+        title: 'PDF链接获取失败',
+        icon: 'none',
+      })
+      return
+    }
+
+    // 复制链接到剪贴板
     uni.showModal({
-      title: 'PDF下载',
-      content: '该功能需要后端支持\n\n接口地址: GET /api/medical-record/{recordId}/pdf\n返回格式: { url: string }',
-      showCancel: false,
-      confirmText: '知道了',
+      title: '病历详情',
+      content: '复制链接到外部浏览器去下载原件',
+      confirmText: '点击复制',
+      cancelText: '取消',
+      success: (modalRes) => {
+        if (modalRes.confirm) {
+          uni.setClipboardData({
+            data: pdfUrl,
+            success: () => {
+              uni.showToast({
+                title: '链接已复制，请在浏览器中粘贴打开',
+                icon: 'success',
+                duration: 3000,
+              })
+              console.log('PDF链接已复制:', pdfUrl)
+            },
+            fail: (err) => {
+              console.error('复制失败:', err)
+              uni.showToast({
+                title: '复制失败，请重试',
+                icon: 'none',
+              })
+            },
+          })
+        }
+      },
     })
-
-    // 后端完成后启用以下代码:
-    // #ifdef H5
-    // window.open(pdfUrl, '_blank')
-    // #endif
-
-    // #ifdef MP-WEIXIN
-    // uni.downloadFile({
-    //   url: pdfUrl,
-    //   success: (res) => {
-    //     if (res.statusCode === 200) {
-    //       uni.openDocument({
-    //         filePath: res.tempFilePath,
-    //         fileType: 'pdf',
-    //         showMenu: true,
-    //       })
-    //     }
-    //   },
-    // })
-    // #endif
   }
   catch (error) {
     uni.hideLoading()
-    console.error('生成PDF失败:', error)
+    console.error('获取PDF失败:', error)
     uni.showToast({
-      title: '生成失败',
+      title: 'PDF生成失败',
       icon: 'none',
     })
   }
