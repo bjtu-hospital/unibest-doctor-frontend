@@ -1,72 +1,169 @@
 <template>
   <view class="medical-record-page">
-    <!-- 病历单 -->
-    <view class="record-paper">
-      <!-- 医院头部：左校徽 中标题 右院徽（标题两行居中） -->
-      <view class="hospital-header">
-        <image class="school-logo" src="/static/BJTU-images/BJTU-logo.png" mode="aspectFit" />
-        <view class="hospital-title">
-          <view class="title-main">
-            <text class="title-line line1">北京交通大学</text>
-            <text class="title-line line2">校医院</text>
+    <!-- 加载状态 -->
+    <view v-if="loading" class="loading-container">
+      <wd-loading size="60rpx" />
+      <text class="loading-text">正在加载病历...</text>
+    </view>
+
+    <!-- 病历内容区域 -->
+    <scroll-view v-else scroll-y class="record-scroll">
+      <!-- 病历头部信息 -->
+      <view class="record-header">
+        <view class="header-left">
+          <text class="patient-name">{{ patientInfo?.name || '-' }}</text>
+          <text class="visit-date">就诊日期：{{ recordData?.visitDate || '-' }}</text>
+        </view>
+        <view class="header-right">
+          <text class="tag department">{{ recordData?.department || '-' }}</text>
+        </view>
+      </view>
+
+      <!-- 病历单卡片 -->
+      <view id="medical-record-content" class="record-card">
+        <!-- 医院标题 - 双logo -->
+        <view class="hospital-header">
+          <image class="logo logo-left" src="/static/BJTU-images/BJTU-logo.png" mode="aspectFit" />
+          <view class="hospital-title">
+            <text class="title-main">北京交通大学校医院</text>
+            <text class="title-sub">Beijing Jiaotong University Hospital</text>
           </view>
-          <text class="record-type">门（急）诊病历</text>
-        </view>
-        <image class="hospital-logo" src="/static/BJTU-images/hospital_logo.png" mode="aspectFit" />
-      </view>
-
-      <!-- 患者信息行 -->
-      <view class="patient-row">
-        <text class="patient-item">姓名：{{ patientInfo?.name || '-' }}</text>
-        <text class="patient-item">性别：{{ patientInfo?.gender || '-' }}</text>
-        <text class="patient-item">年龄：{{ patientInfo?.age || '-' }}</text>
-      </view>
-
-      <!-- 就诊信息行 -->
-      <view class="visit-row">
-        <text class="visit-item">门诊号：{{ recordData?.outpatientNo || '-' }}</text>
-        <text class="visit-item">科别：{{ recordData?.department || '-' }}</text>
-      </view>
-      <view class="visit-row">
-        <text class="visit-item">就诊日期：{{ recordData?.visitDate || '-' }}</text>
-      </view>
-
-      <!-- 分隔线 -->
-      <view class="divider-line" />
-
-      <!-- 病历内容区 -->
-      <view class="record-body">
-        <view class="record-field">
-          <text class="field-label">主诉：</text>
-          <text class="field-value">{{ recordData?.chiefComplaint || '-' }}</text>
+          <image class="logo logo-right" src="/static/BJTU-images/hospital_logo.png" mode="aspectFit" />
         </view>
 
-        <view class="record-field">
-          <text class="field-label">现病史：</text>
-          <text class="field-value">{{ recordData?.presentIllness || '-' }}</text>
+        <!-- 病历单标题 -->
+        <view class="record-title">
+          <text class="title-text">门 诊 病 历</text>
+          <view class="title-line" />
         </view>
 
-        <view v-if="recordData?.auxiliaryExam" class="record-field">
-          <text class="field-label">辅助检查：</text>
-          <text class="field-value">{{ recordData.auxiliaryExam }}</text>
+        <!-- 基本信息区 -->
+        <view class="info-section">
+          <view class="info-row">
+            <view class="info-item">
+              <text class="label">姓名：</text>
+              <text class="value">{{ patientInfo?.name || '-' }}</text>
+            </view>
+            <view class="info-item">
+              <text class="label">性别：</text>
+              <text class="value">{{ patientInfo?.gender || '-' }}</text>
+            </view>
+            <view class="info-item">
+              <text class="label">年龄：</text>
+              <text class="value">{{ patientInfo?.age || '-' }}岁</text>
+            </view>
+          </view>
+          <view class="info-row">
+            <view class="info-item">
+              <text class="label">门诊号：</text>
+              <text class="value">{{ recordData?.outpatientNo || '-' }}</text>
+            </view>
+            <view class="info-item flex-2">
+              <text class="label">就诊日期：</text>
+              <text class="value">{{ recordData?.visitDate || '-' }}</text>
+            </view>
+          </view>
+          <view class="info-row">
+            <view class="info-item">
+              <text class="label">科室：</text>
+              <text class="value">{{ recordData?.department || '-' }}</text>
+            </view>
+            <view class="info-item flex-2">
+              <text class="label">医生：</text>
+              <text class="value">{{ recordData?.doctorName || '-' }}</text>
+            </view>
+          </view>
         </view>
 
-        <view class="record-field">
-          <text class="field-label">初步诊断：</text>
-          <text class="field-value">{{ recordData?.diagnosis || '-' }}</text>
+        <!-- 分隔线 -->
+        <view class="divider" />
+
+        <!-- 主诉 -->
+        <view class="content-section">
+          <view class="section-title">
+            <text class="title-icon">●</text>
+            <text class="title-text">主诉</text>
+          </view>
+          <view class="section-content">
+            <text class="content-text">{{ recordData?.chiefComplaint || '无' }}</text>
+          </view>
         </view>
 
-        <view v-if="recordData?.prescription" class="record-field">
-          <text class="field-label">处置：</text>
-          <text class="field-value prescription">{{ recordData.prescription }}</text>
+        <!-- 现病史 -->
+        <view class="content-section">
+          <view class="section-title">
+            <text class="title-icon">●</text>
+            <text class="title-text">现病史</text>
+          </view>
+          <view class="section-content">
+            <text class="content-text">{{ recordData?.presentIllness || '无' }}</text>
+          </view>
+        </view>
+
+        <!-- 辅助检查 -->
+        <view v-if="recordData?.auxiliaryExam" class="content-section">
+          <view class="section-title">
+            <text class="title-icon">●</text>
+            <text class="title-text">辅助检查</text>
+          </view>
+          <view class="section-content">
+            <text class="content-text">{{ recordData?.auxiliaryExam }}</text>
+          </view>
+        </view>
+
+        <!-- 诊断 -->
+        <view class="content-section diagnosis-section">
+          <view class="section-title">
+            <text class="title-icon">●</text>
+            <text class="title-text">诊断</text>
+          </view>
+          <view class="section-content">
+            <text class="diagnosis-text">{{ recordData?.diagnosis || '无' }}</text>
+          </view>
+        </view>
+
+        <!-- 处置/处方 -->
+        <view v-if="recordData?.prescription" class="content-section">
+          <view class="section-title">
+            <text class="title-icon">●</text>
+            <text class="title-text">处置/处方</text>
+          </view>
+          <view class="section-content">
+            <text class="content-text prescription-text">{{ recordData?.prescription }}</text>
+          </view>
+        </view>
+
+        <!-- 医师签名 -->
+        <view class="signature-section">
+          <view class="signature-row">
+            <text class="signature-label">医师签名：</text>
+            <text class="signature-value">{{ recordData?.doctorName || '-' }}</text>
+          </view>
+          <view class="signature-row">
+            <text class="signature-label">日期：</text>
+            <text class="signature-value">{{ recordData?.visitDate || '-' }}</text>
+          </view>
+        </view>
+
+        <!-- 医院印章区域 -->
+        <view class="stamp-area">
+          <view class="stamp-placeholder">
+            <text class="stamp-text">北京交通大学</text>
+            <text class="stamp-text">校医院</text>
+          </view>
         </view>
       </view>
 
-      <!-- 医师签名 -->
-      <view class="doctor-sign">
-        <text class="sign-label">医师签名：</text>
-        <text class="sign-name">{{ recordData?.doctorName || '-' }}</text>
-      </view>
+      <!-- 底部安全区域占位 -->
+      <view class="bottom-safe-area" />
+    </scroll-view>
+
+    <!-- 底部操作栏 -->
+    <view class="action-bar">
+      <wd-button type="primary" block class="download-btn" @click="downloadPdf">
+        <wd-icon name="download" size="36rpx" />
+        <text class="btn-text">下载病历 PDF</text>
+      </wd-button>
     </view>
   </view>
 </template>
@@ -87,6 +184,7 @@ const recordId = ref<string>('')
 const patientId = ref<string>('')
 const recordData = ref<ConsultationRecord>()
 const patientInfo = ref<BasicInfo>()
+const loading = ref(true)
 
 // 接收页面参数
 onLoad((options) => {
@@ -97,6 +195,7 @@ onLoad((options) => {
     fetchRecordDetail()
   }
   else {
+    loading.value = false
     uni.showToast({
       title: '缺少记录ID',
       icon: 'none',
@@ -106,23 +205,45 @@ onLoad((options) => {
 
 // 获取病历详情数据
 function fetchRecordDetail() {
+  loading.value = true
   // TODO: 替换为真实API调用
-  // 目前使用 mock 数据
-  const mockData = mockPatientDetail
-  patientInfo.value = mockData.basicInfo
+  setTimeout(() => {
+    const mockData = mockPatientDetail
+    patientInfo.value = mockData.basicInfo
 
-  // 根据 recordId 查找对应的就诊记录
-  const record = mockData.consultationRecords.find(r => r.id === recordId.value)
-  if (record) {
-    recordData.value = record
-    console.log('病历详情获取成功:', record)
-  }
-  else {
+    const record = mockData.consultationRecords.find(r => r.id === recordId.value)
+    if (record) {
+      recordData.value = record
+      console.log('病历详情获取成功:', record)
+    }
+    else {
+      uni.showToast({
+        title: '未找到病历记录',
+        icon: 'none',
+      })
+    }
+    loading.value = false
+  }, 500)
+}
+
+// 下载 PDF（调用后端接口生成PDF并下载）
+function downloadPdf() {
+  uni.showToast({
+    title: '正在生成PDF...',
+    icon: 'loading',
+    duration: 2000,
+  })
+
+  // TODO: 调用后端接口生成PDF
+  // 后端根据 recordId 生成病历PDF并返回下载链接
+  // const pdfUrl = await api.generateMedicalRecordPdf(recordId.value)
+
+  setTimeout(() => {
     uni.showToast({
-      title: '未找到病历记录',
+      title: 'PDF功能开发中',
       icon: 'none',
     })
-  }
+  }, 1000)
 }
 </script>
 
@@ -130,151 +251,304 @@ function fetchRecordDetail() {
 .medical-record-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-  padding: 20rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
 }
 
-.record-paper {
-  background-color: #fff;
-  border-radius: 8rpx;
-  padding: 40rpx 32rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
-}
-
-// 医院头部
-.hospital-header {
-  display: grid;
-  grid-template-columns: 160rpx 1fr 160rpx;
+// 加载状态
+.loading-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-items: center;
-  column-gap: 16rpx;
-  margin-bottom: 32rpx;
-  padding-bottom: 24rpx;
-  border-bottom: 2rpx solid #ddd;
+  justify-content: center;
+  padding: 100rpx 0;
 
-  .school-logo,
-  .hospital-logo {
-    width: 160rpx;
-    height: 160rpx;
+  .loading-text {
+    margin-top: 24rpx;
+    font-size: 28rpx;
+    color: #999;
+  }
+}
+
+// 滚动区域
+.record-scroll {
+  flex: 1;
+  height: 0;
+}
+
+// 病历头部信息
+.record-header {
+  background-color: #fff;
+  padding: 24rpx 32rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .header-left {
+    display: flex;
+    flex-direction: column;
+
+    .patient-name {
+      font-size: 36rpx;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .visit-date {
+      font-size: 26rpx;
+      color: #888;
+      margin-top: 8rpx;
+    }
+  }
+
+  .header-right {
+    .tag {
+      font-size: 24rpx;
+      padding: 8rpx 16rpx;
+      border-radius: 8rpx;
+      background-color: #e8f4ff;
+      color: #1989fa;
+    }
+  }
+}
+
+// 病历单卡片
+.record-card {
+  background-color: #fff;
+  margin: 20rpx;
+  border-radius: 16rpx;
+  padding: 40rpx 32rpx;
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+// 医院标题区域 - 双logo
+.hospital-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 32rpx;
+  border-bottom: 2rpx solid #1e3a8a;
+
+  .logo {
+    width: 100rpx;
+    height: 100rpx;
+  }
+
+  .logo-left {
+    margin-right: 24rpx;
+  }
+
+  .logo-right {
+    margin-left: 24rpx;
   }
 
   .hospital-title {
     display: flex;
     flex-direction: column;
     align-items: center;
-    text-align: center;
 
     .title-main {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      font-size: 36rpx;
       font-weight: 700;
-      color: #333;
-      line-height: 1.2;
-    }
-
-    .title-line {
-      letter-spacing: 2rpx;
-    }
-
-    .line1,
-    .line2 {
-      font-size: 40rpx;
-    }
-
-    .record-type {
-      font-size: 28rpx;
-      color: #666;
-      margin-top: 8rpx;
+      color: #1e3a8a;
       letter-spacing: 4rpx;
     }
+
+    .title-sub {
+      font-size: 20rpx;
+      color: #666;
+      margin-top: 4rpx;
+    }
   }
 }
 
-// 患者信息行
-.patient-row {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 12rpx 0;
+// 病历单标题
+.record-title {
+  text-align: center;
+  padding: 32rpx 0;
 
-  .patient-item {
-    font-size: 28rpx;
+  .title-text {
+    font-size: 40rpx;
+    font-weight: 700;
     color: #333;
-    margin-right: 48rpx;
-    line-height: 1.8;
+    letter-spacing: 16rpx;
+  }
+
+  .title-line {
+    height: 4rpx;
+    background: linear-gradient(90deg, transparent, #c41e3a, transparent);
+    margin-top: 16rpx;
   }
 }
 
-// 就诊信息行
-.visit-row {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 8rpx 0;
+// 基本信息区
+.info-section {
+  padding: 20rpx 0;
 
-  .visit-item {
-    font-size: 28rpx;
-    color: #333;
-    margin-right: 48rpx;
-    line-height: 1.8;
-  }
-}
-
-// 分隔线
-.divider-line {
-  height: 2rpx;
-  background-color: #333;
-  margin: 20rpx 0;
-}
-
-// 病历内容区
-.record-body {
-  padding: 16rpx 0;
-
-  .record-field {
-    margin-bottom: 28rpx;
-    line-height: 1.8;
+  .info-row {
+    display: flex;
+    margin-bottom: 16rpx;
 
     &:last-child {
       margin-bottom: 0;
     }
+  }
 
-    .field-label {
-      font-size: 28rpx;
-      font-weight: 600;
-      color: #333;
+  .info-item {
+    flex: 1;
+    display: flex;
+    font-size: 28rpx;
+
+    &.flex-2 {
+      flex: 2;
     }
 
-    .field-value {
-      font-size: 28rpx;
-      color: #333;
+    .label {
+      color: #666;
+      white-space: nowrap;
+    }
 
-      &.prescription {
-        white-space: pre-wrap;
-        display: block;
-        margin-top: 8rpx;
-        padding-left: 4rpx;
-      }
+    .value {
+      color: #333;
+      font-weight: 500;
     }
   }
 }
 
-// 医师签名
-.doctor-sign {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 48rpx;
-  padding-top: 24rpx;
-  border-top: 1rpx solid #e5e5e5;
+// 分隔线
+.divider {
+  height: 2rpx;
+  background-color: #eee;
+  margin: 24rpx 0;
+}
 
-  .sign-label {
-    font-size: 28rpx;
-    color: #333;
+// 内容区块
+.content-section {
+  margin-bottom: 32rpx;
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16rpx;
+
+    .title-icon {
+      color: #1e3a8a;
+      font-size: 20rpx;
+      margin-right: 12rpx;
+    }
+
+    .title-text {
+      font-size: 30rpx;
+      font-weight: 600;
+      color: #333;
+    }
   }
 
-  .sign-name {
+  .section-content {
+    padding-left: 32rpx;
+
+    .content-text {
+      font-size: 28rpx;
+      color: #555;
+      line-height: 1.8;
+    }
+
+    .prescription-text {
+      white-space: pre-wrap;
+    }
+  }
+}
+
+// 诊断区块特殊样式
+.diagnosis-section {
+  .section-content {
+    background-color: #f0f4ff;
+    padding: 20rpx;
+    border-radius: 12rpx;
+    border-left: 6rpx solid #1e3a8a;
+
+    .diagnosis-text {
+      font-size: 30rpx;
+      font-weight: 600;
+      color: #1e3a8a;
+    }
+  }
+}
+
+// 医师签名区域
+.signature-section {
+  margin-top: 48rpx;
+  padding-top: 32rpx;
+  border-top: 2rpx dashed #ddd;
+  display: flex;
+  justify-content: space-between;
+
+  .signature-row {
+    display: flex;
     font-size: 28rpx;
-    color: #333;
-    font-weight: 500;
+
+    .signature-label {
+      color: #666;
+    }
+
+    .signature-value {
+      color: #333;
+      font-weight: 500;
+      text-decoration: underline;
+    }
+  }
+}
+
+// 印章区域
+.stamp-area {
+  margin-top: 40rpx;
+  display: flex;
+  justify-content: flex-end;
+
+  .stamp-placeholder {
+    width: 160rpx;
+    height: 160rpx;
+    border: 4rpx solid #c41e3a;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+
+    .stamp-text {
+      font-size: 22rpx;
+      color: #c41e3a;
+      font-weight: 600;
+    }
+  }
+}
+
+// 底部安全区域
+.bottom-safe-area {
+  height: 160rpx;
+}
+
+// 底部操作栏
+.action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
+
+  .download-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .btn-text {
+      margin-left: 12rpx;
+    }
   }
 }
 </style>

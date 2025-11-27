@@ -50,7 +50,8 @@
         "auxiliaryExam": "2025-04-25 13:07，常规生化，肝功4白蛋白/球蛋白 2.56；*直接胆红素 8.7*umol/L；",
         "diagnosis": "胆红素代谢紊乱",
         "prescription": "1.全血细胞计数+5分类\n2.凝血分析\n3.生化23",
-        "status": "completed"
+        "status": "completed",
+        "pdfUrl": "https://example.com/medical-records/12345.pdf"
       }
     ]
   }
@@ -94,6 +95,7 @@
 | diagnosis | string | 初步诊断 |
 | prescription | string | 处置/处方（可选） |
 | status | string | 就诊状态（completed/ongoing/cancelled） |
+| pdfUrl | string | 病历单PDF文件URL（可选，用于在线预览和下载） |
 
 ### 错误响应
 
