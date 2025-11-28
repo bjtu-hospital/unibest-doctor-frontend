@@ -88,7 +88,7 @@ export async function getApprovalList(status: 'all' | ApprovalStatus = 'all'): P
           avatar: '', // Backend doesn't provide avatar
         },
         leaveDate: item.leave_start_date,
-        shift: 'full', // Defaulting as backend doesn't provide shift info yet
+        shift: item.shift || 'full', // Use shift from backend
         originalSchedule: [], // Defaulting
         reason: item.reason,
         attachments: (item.attachments || []).map((url: string) => {
@@ -126,19 +126,12 @@ export async function getApprovalStats(): Promise<ApprovalStats> {
   }
 
   try {
-    // Fetch pending to get count
-    const pendingRes = await http.get<{ audits: any[] }>('/doctor/leave/audit', {
-      status: 'pending',
-      page: 1,
-      page_size: 100,
-    })
-
-    // We can't easily get approved/rejected month counts without fetching all or having a stats API
-    // So we'll just return pending count and 0 for others for now
+    const res = await http.get<{ pending: number, approvedMonth: number, rejectedMonth: number }>('/doctor/approval/stats')
+    
     return {
-      pending: pendingRes.audits ? pendingRes.audits.length : 0,
-      approvedMonth: 0,
-      rejectedMonth: 0,
+      pending: res.pending || 0,
+      approvedMonth: res.approvedMonth || 0,
+      rejectedMonth: res.rejectedMonth || 0,
     }
   }
   catch (error) {

@@ -63,7 +63,10 @@
               <div class="mb-1 text-sm text-gray-500">
                 原排班信息
               </div>
-              <div v-for="(item, idx) in detail?.originalSchedule" :key="idx" class="mb-1 border-l-2 border-blue-200 pl-2 text-sm text-gray-700">
+              <div v-if="!detail?.originalSchedule || detail.originalSchedule.length === 0" class="text-sm text-gray-400">
+                无排班
+              </div>
+              <div v-for="(item, idx) in detail.originalSchedule" v-else :key="idx" class="mb-1 border-l-2 border-blue-200 pl-2 text-sm text-gray-700">
                 {{ item }}
               </div>
             </div>
@@ -157,6 +160,7 @@ function getShiftLabel(shift?: string) {
     full: '全天',
     morning: '上午',
     afternoon: '下午',
+    evening: '晚间',
   }
   return shift ? (map[shift] || shift) : ''
 }
