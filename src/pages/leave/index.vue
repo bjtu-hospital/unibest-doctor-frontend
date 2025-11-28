@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex flex-col bg-gray-50">
     <!-- Navbar -->
-    <wd-navbar title="请假管理" placeholder safe-area-inset-top fixed>
+    <wd-navbar title="请假管理" placeholder safe-area-inset-top left-arrow fixed @click-left="handleBack">
       <template #right>
         <div class="flex items-center gap-1 text-gray-600" @click="showHistory = true">
           <span class="text-lg">🕒</span>
@@ -72,6 +72,10 @@ function handleDateSelect(item: ScheduleItem) {
 
 function handleSubmitted() {
   refreshTrigger.value++ // Refresh calendar
+}
+
+function handleBack() {
+  uni.switchTab({ url: '/pages/index/index' })
 }
 </script>
 

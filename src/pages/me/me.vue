@@ -1,9 +1,7 @@
 <script lang="ts" setup>
-import type { ProfileStats } from '@/service/profile'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, ref } from 'vue'
+import { computed } from 'vue'
 import { LOGIN_PAGE } from '@/router/config'
-import { getProfileStats } from '@/service/profile'
 import { useUserStore } from '@/store'
 import { useTokenStore } from '@/store/token'
 
@@ -24,39 +22,6 @@ const userTitle = computed(() => userInfo.value.doctor?.title || '未知职称')
 const userDept = computed(() => userInfo.value.doctor?.department || '未知科室')
 const userHospital = computed(() => userInfo.value.doctor?.hospital || '未知院区')
 const isDeptHead = computed(() => userStore.isDepartmentHead)
-
-// 统计数据
-const statsData = ref<ProfileStats>({
-  attendance: 0,
-  monthlyConsult: 0,
-  totalConsult: 0,
-})
-
-// 加载状态
-const loading = ref(false)
-
-// 加载统计数据
-async function loadStats() {
-  loading.value = true
-  try {
-    statsData.value = await getProfileStats()
-  }
-  catch (error) {
-    console.error('Failed to load profile stats:', error)
-    uni.showToast({
-      title: '加载统计数据失败',
-      icon: 'none',
-    })
-  }
-  finally {
-    loading.value = false
-  }
-}
-
-// 页面加载时获取数据
-onMounted(() => {
-  loadStats()
-})
 
 // 退出登录
 function handleLogout() {
@@ -185,48 +150,6 @@ function handleVersion() {
       </div>
     </div>
 
-    <!-- 统计数据卡片 -->
-    <div class="grid grid-cols-3 mx-4 mt-4 gap-3">
-      <!-- 本月出勤 -->
-      <div class="flex flex-col items-center rounded-xl bg-white p-4 shadow-sm">
-        <div class="h-12 w-12 flex items-center justify-center rounded-full from-[#1890FF] to-[#096DD9] bg-gradient-to-br">
-          <div class="i-carbon-calendar text-xl text-white" />
-        </div>
-        <div class="mt-3 text-2xl text-gray-800 font-extrabold">
-          {{ statsData.attendance }}
-        </div>
-        <div class="mt-1 text-xs text-gray-500">
-          本月出勤
-        </div>
-      </div>
-
-      <!-- 本月接诊 -->
-      <div class="flex flex-col items-center rounded-xl bg-white p-4 shadow-sm">
-        <div class="h-12 w-12 flex items-center justify-center rounded-full from-[#52C41A] to-[#389E0D] bg-gradient-to-br">
-          <div class="i-carbon-user-multiple text-xl text-white" />
-        </div>
-        <div class="mt-3 text-2xl text-gray-800 font-extrabold">
-          {{ statsData.monthlyConsult }}
-        </div>
-        <div class="mt-1 text-xs text-gray-500">
-          本月接诊
-        </div>
-      </div>
-
-      <!-- 累计接诊 -->
-      <div class="flex flex-col items-center rounded-xl bg-white p-4 shadow-sm">
-        <div class="h-12 w-12 flex items-center justify-center rounded-full from-[#FAAD14] to-[#FA8C16] bg-gradient-to-br">
-          <div class="i-carbon-trophy text-xl text-white" />
-        </div>
-        <div class="mt-3 text-2xl text-gray-800 font-extrabold">
-          {{ statsData.totalConsult }}
-        </div>
-        <div class="mt-1 text-xs text-gray-500">
-          累计接诊
-        </div>
-      </div>
-    </div>
-
     <!-- 设置列表 -->
     <div class="mx-4 mt-4 overflow-hidden rounded-xl bg-white shadow-sm">
       <!-- 修改密码 -->
@@ -250,7 +173,7 @@ function handleVersion() {
       <!-- 关于我们 -->
       <div class="menu-item flex items-center justify-between border-b border-gray-100 px-4 py-4" @click="handleAbout">
         <div class="flex items-center gap-3">
-          <div class="i-carbon-information text-xl text-[#722ED1]" />
+          <div class="i-carbon-information text-xl text-[#FAAD14]" />
           <span class="text-sm text-gray-800">关于我们</span>
         </div>
         <div class="i-carbon-chevron-right text-base text-gray-400" />
@@ -259,7 +182,7 @@ function handleVersion() {
       <!-- 版本信息 -->
       <div class="menu-item flex items-center justify-between px-4 py-4" @click="handleVersion">
         <div class="flex items-center gap-3">
-          <div class="i-carbon-mobile text-xl text-[#FA8C16]" />
+          <div class="i-carbon-application text-xl text-gray-500" />
           <span class="text-sm text-gray-800">版本信息</span>
         </div>
         <div class="flex items-center gap-2">

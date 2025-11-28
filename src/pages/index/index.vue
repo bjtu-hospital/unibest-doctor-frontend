@@ -146,13 +146,95 @@
         </template>
       </div>
     </div>
+
+    <!-- 提醒事项 -->
+    <div v-if="(workbenchData?.reminders && workbenchData.reminders.length > 0) || leaveRecords.length > 0" class="mx-4 mb-6 mt-4">
+      <div class="mb-2 text-sm text-gray-800 font-bold">
+        🔔 提醒事项
+      </div>
+      <div class="space-y-2">
+        <!-- 系统提醒 -->
+        <div
+          v-for="reminder in workbenchData?.reminders || []"
+          :key="reminder.id"
+          class="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm"
+        >
+          <div class="h-10 w-10 flex items-center justify-center rounded-full bg-blue-50">
+            <div class="i-carbon-notification text-lg text-blue-500" />
+          </div>
+          <div class="flex-1">
+            <div class="text-sm text-gray-800 font-bold">
+              {{ reminder.title }}
+            </div>
+            <div class="mt-0.5 text-xs text-gray-500">
+              {{ reminder.time }}
+            </div>
+          </div>
+        </div>
+
+        <!-- 请假提醒 -->
+        <div
+          v-for="leave in leaveRecords"
+          :key="leave.id"
+          class="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm"
+          :class="{
+            'border-l-4 border-yellow-500': leave.status === 'pending',
+            'border-l-4 border-green-500': leave.status === 'approved',
+            'border-l-4 border-red-500': leave.status === 'rejected',
+          }"
+        >
+          <div
+            class="h-10 w-10 flex items-center justify-center rounded-full"
+            :class="{
+              'bg-yellow-50': leave.status === 'pending',
+              'bg-green-50': leave.status === 'approved',
+              'bg-red-50': leave.status === 'rejected',
+            }"
+          >
+            <div
+              class="text-lg"
+              :class="{
+                'i-carbon-time text-yellow-500': leave.status === 'pending',
+                'i-carbon-checkmark-filled text-green-500': leave.status === 'approved',
+                'i-carbon-close-filled text-red-500': leave.status === 'rejected',
+              }"
+            />
+          </div>
+          <div class="flex-1">
+            <div class="text-sm text-gray-800 font-bold">
+              <span v-if="leave.status === 'pending'">请假审批中</span>
+              <span v-else-if="leave.status === 'approved'">请假已通过</span>
+              <span v-else-if="leave.status === 'rejected'">请假已拒绝</span>
+            </div>
+            <div class="mt-0.5 text-xs text-gray-500">
+              {{ dayjs(leave.date).format('MM月DD日') }}
+              <span v-if="leave.shift === 'morning'">上午</span>
+              <span v-else-if="leave.shift === 'afternoon'">下午</span>
+              <span v-else-if="leave.shift === 'full'">全天</span>
+              <span v-else-if="leave.shift === 'night'">夜班</span>
+              <span v-if="leave.status === 'approved' && leave.approver"> · 审批人：{{ leave.approver }}</span>
+              <span v-if="leave.status === 'rejected' && leave.rejectReason"> · {{ leave.rejectReason }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import type { WorkbenchData } from '@/service/workbench'
+import type { LeaveRecord } from '@/types/leave'
 import dayjs from 'dayjs'
 import { computed, onMounted, ref } from 'vue'
 import { getApprovalStats } from '@/service/approval'
+import { getLeaveHistory } from '@/service/leave'
+import {
+  checkin,
+  checkout,
+  getWorkbenchData,
+
+} from '@/service/workbench'
 import { useUserStore } from '@/store/user'
 
 defineOptions({
@@ -174,42 +256,232 @@ const greeting = computed(() => {
 const userName = computed(() => userStore.userInfo.doctor?.name || '医生')
 const userDeptTitle = computed(() => `${userStore.userInfo.doctor?.department || '科室'}｜${userStore.userInfo.doctor?.title || ''}`)
 
-// 签到签退状态（示例占位：可替换为真实接口与store）
-const checkedIn = ref(false)
-const checkInTime = ref('')
-function handleCheckIn() {
-  checkedIn.value = true
-  checkInTime.value = dayjs().format('HH:mm')
-  uni.showToast({ icon: 'none', title: '签到成功' })
-}
-function handleCheckOut() {
-  checkedIn.value = false
-  uni.showToast({ icon: 'none', title: '签退成功' })
-}
+// 工作台数据
+const workbenchData = ref<WorkbenchData | null>(null)
+const loading = ref(false)
 
-// 今日排班（占位，后续可从排班接口读取今日排班）
-const todayScheduleText = computed(() => '上午门诊 08:00-12:00')
-const todayScheduleBrief = computed(() => '上午门诊')
-const attendanceTitle = computed(() => (checkedIn.value ? '已签到，未签退' : '今日尚未签到'))
+// 签到签退状态
+const shiftStatus = computed(() => workbenchData.value?.shiftStatus)
+const checkedIn = computed(() => shiftStatus.value?.status === 'checked_in' || shiftStatus.value?.status === 'checkout_pending')
+const checkInTime = computed(() => shiftStatus.value?.checkinTime || '')
+const currentShift = computed(() => shiftStatus.value?.currentShift)
 
-// 待接诊人数（占位）
-const waitingPatients = ref(0)
+// 今日排班
+const todayScheduleText = computed(() => {
+  if (!currentShift.value)
+    return '今日无排班'
+  return `${currentShift.value.name} ${currentShift.value.startTime}-${currentShift.value.endTime}`
+})
+const todayScheduleBrief = computed(() => currentShift.value?.name || '无排班')
+const attendanceTitle = computed(() => {
+  const status = shiftStatus.value?.status
+  if (status === 'checked_in')
+    return '已签到，未签退'
+  if (status === 'checked_out')
+    return '已签退'
+  if (status === 'checkout_pending')
+    return '待签退'
+  return '今日尚未签到'
+})
+
+// 接诊统计
+const consultationStats = ref({
+  pending: 0,
+  ongoing: 0,
+  completed: 0,
+  total: 0,
+})
+const waitingPatients = computed(() => consultationStats.value.pending)
 
 // 审批统计
-const approvalStats = ref<{ pending: number, approvedMonth: number, rejectedMonth: number }>({ pending: 0, approvedMonth: 0, rejectedMonth: 0 })
+const approvalStats = ref<{ pending: number, approvedMonth: number, rejectedMonth: number }>({
+  pending: 0,
+  approvedMonth: 0,
+  rejectedMonth: 0,
+})
 
-onMounted(async () => {
+// 请假记录
+const leaveRecords = ref<LeaveRecord[]>([])
+
+// 加载工作台数据
+async function loadWorkbenchData() {
+  loading.value = true
+  try {
+    const data = await getWorkbenchData()
+    workbenchData.value = data
+
+    // 更新接诊统计
+    consultationStats.value = {
+      pending: data.todayData.pendingConsultation,
+      ongoing: data.todayData.ongoingConsultation,
+      completed: data.todayData.completedConsultation,
+      total: data.todayData.totalConsultation,
+    }
+  }
+  catch (error) {
+    console.error('Failed to load workbench data:', error)
+    uni.showToast({
+      title: '加载工作台数据失败',
+      icon: 'none',
+    })
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+// 加载审批统计（如果是科室长）
+async function loadApprovalStats() {
+  if (!userStore.isDepartmentHead)
+    return
+
   try {
     approvalStats.value = await getApprovalStats()
   }
   catch (e) {
     approvalStats.value = { pending: 0, approvedMonth: 0, rejectedMonth: 0 }
   }
-})
+}
+
+// 加载请假记录（近期和今天的）
+async function loadLeaveRecords() {
+  try {
+    const records = await getLeaveHistory(1, 10)
+    // 只保留今天及未来7天的请假记录
+    const today = dayjs()
+    const sevenDaysLater = today.add(7, 'day')
+    leaveRecords.value = records.filter((record) => {
+      const leaveDate = dayjs(record.date)
+      return leaveDate.isSame(today, 'day') || (leaveDate.isAfter(today) && leaveDate.isBefore(sevenDaysLater))
+    })
+  }
+  catch (error) {
+    console.error('Failed to load leave records:', error)
+    leaveRecords.value = []
+  }
+}
+
+// 签到
+async function handleCheckIn() {
+  if (!currentShift.value) {
+    uni.showToast({
+      title: '今日无排班，无法签到',
+      icon: 'none',
+    })
+    return
+  }
+
+  try {
+    // 获取位置
+    const location = await getLocation()
+
+    const result = await checkin({
+      shiftId: currentShift.value.id,
+      latitude: location.latitude,
+      longitude: location.longitude,
+    })
+
+    uni.showToast({
+      title: result.message,
+      icon: 'success',
+    })
+
+    // 重新加载数据
+    await loadWorkbenchData()
+  }
+  catch (error: any) {
+    console.error('Check in failed:', error)
+    uni.showToast({
+      title: error.message || '签到失败',
+      icon: 'none',
+    })
+  }
+}
+
+// 签退
+async function handleCheckOut() {
+  if (!currentShift.value) {
+    uni.showToast({
+      title: '今日无排班，无法签退',
+      icon: 'none',
+    })
+    return
+  }
+
+  try {
+    // 获取位置
+    const location = await getLocation()
+
+    const result = await checkout({
+      shiftId: currentShift.value.id,
+      latitude: location.latitude,
+      longitude: location.longitude,
+    })
+
+    uni.showToast({
+      title: `${result.message}\n工作时长: ${result.workDuration}`,
+      icon: 'success',
+      duration: 3000,
+    })
+
+    // 重新加载数据
+    await loadWorkbenchData()
+  }
+  catch (error: any) {
+    console.error('Check out failed:', error)
+    uni.showToast({
+      title: error.message || '签退失败',
+      icon: 'none',
+    })
+  }
+}
+
+// 获取位置信息
+function getLocation(): Promise<{ latitude: number, longitude: number }> {
+  return new Promise((resolve, reject) => {
+    uni.getLocation({
+      type: 'gcj02',
+      success: (res) => {
+        resolve({
+          latitude: res.latitude,
+          longitude: res.longitude,
+        })
+      },
+      fail: (err) => {
+        console.error('Get location failed:', err)
+        // 如果获取位置失败，使用默认值（仅测试用）
+        uni.showModal({
+          title: '定位失败',
+          content: '无法获取您的位置信息，是否使用默认位置进行签到？',
+          success: (modalRes) => {
+            if (modalRes.confirm) {
+              resolve({
+                latitude: 39.9042,
+                longitude: 116.4074,
+              })
+            }
+            else {
+              reject(new Error('用户取消定位'))
+            }
+          },
+        })
+      },
+    })
+  })
+}
 
 function navigateTo(url: string) {
   uni.navigateTo({ url })
 }
+
+// 页面加载
+onMounted(async () => {
+  await Promise.all([
+    loadWorkbenchData(),
+    loadApprovalStats(),
+    loadLeaveRecords(),
+  ])
+})
 </script>
 
 <style scoped>
