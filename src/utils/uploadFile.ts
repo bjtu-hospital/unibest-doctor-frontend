@@ -17,6 +17,8 @@
 /**
  * 上传文件的URL配置
  */
+import { useTokenStore } from '@/store'
+
 export const uploadFileUrl = {
   /** 用户头像上传地址 */
   USER_AVATAR: `${import.meta.env.VITE_SERVER_BASEURL}/user/avatar`,
@@ -267,24 +269,36 @@ function uploadFile<T>({
   onComplete,
 }: UploadFileOptions<T>) {
   try {
+    const tokenStore = useTokenStore()
+    const header: Record<string, string> = {
+      // #ifndef H5
+      'Content-Type': 'multipart/form-data',
+      // #endif
+    }
+    if (tokenStore.validToken) {
+      header.Authorization = `Bearer ${tokenStore.validToken}`
+    }
+
     // 创建上传任务
     const uploadTask = uni.uploadFile({
       url,
       filePath: tempFilePath,
       name: 'file', // 文件对应的 key
       formData,
-      header: {
-        // H5环境下不需要手动设置Content-Type，让浏览器自动处理multipart格式
-        // #ifndef H5
-        'Content-Type': 'multipart/form-data',
-        // #endif
-      },
+      header,
       // 确保文件名称合法
       success: (uploadFileRes) => {
         console.log('上传文件成功:', uploadFileRes)
         try {
           // 解析响应数据
-          const { data: _data } = JSON.parse(uploadFileRes.data)
+          const resBody = JSON.parse(uploadFileRes.data)
+          // 兼容后端返回格式：{ code: 0, message: { url: '...' } } 或 { code: 0, data: { url: '...' } }
+          const _data = resBody.data || resBody.message
+
+          if (resBody.code !== 0 && resBody.code !== 200) {
+            throw new Error(resBody.msg || resBody.message || '上传失败')
+          }
+
           // 上传成功
           data.value = _data as T
           onSuccess?.(_data)
@@ -293,7 +307,7 @@ function uploadFile<T>({
           // 响应解析错误
           console.error('解析上传响应失败:', err)
           error.value = true
-          onError?.(new Error('上传响应解析失败'))
+          onError?.(err instanceof Error ? err : new Error('上传响应解析失败'))
         }
       },
       fail: (err) => {
