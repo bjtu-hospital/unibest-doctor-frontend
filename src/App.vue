@@ -1,9 +1,18 @@
 <script setup lang="ts">
 import { onHide, onLaunch, onShow } from '@dcloudio/uni-app'
+import { LOGIN_PAGE } from '@/router/config'
 import { navigateToInterceptor } from '@/router/interceptor'
+import { useTokenStore } from '@/store/token'
 
 onLaunch((options) => {
   console.log('App.vue onLaunch', options)
+
+  // 检查登录状态，未登录则跳转到登录页
+  const tokenStore = useTokenStore()
+  if (!tokenStore.hasLogin) {
+    console.log('用户未登录，跳转到登录页')
+    uni.reLaunch({ url: LOGIN_PAGE })
+  }
 })
 onShow((options) => {
   console.log('App.vue onShow', options)
