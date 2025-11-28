@@ -72,7 +72,7 @@ interface Props {
   patientId?: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 function getStatusClass(status: string) {
   const statusMap: Record<string, string> = {
@@ -107,7 +107,7 @@ function formatTime(dateStr: string) {
 
 function goToMedicalRecord(recordId: string) {
   uni.navigateTo({
-    url: `/pages/patient-detail/medical-record/medical-record?recordId=${recordId}`,
+    url: `/pages/patient-detail/medical-record/medical-record?recordId=${recordId}&patientId=${props.patientId || ''}`,
   })
 }
 </script>
