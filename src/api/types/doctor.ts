@@ -17,43 +17,98 @@ export interface SchedulesResponse {
 }
 
 export interface Patient {
-  orderId: string
-  patientId: string
+  orderId: string | number
+  patientId: string | number
   patientName: string
+  gender?: string
+  age?: number | null
   queueNumber: string
-  gender: string
-  age: number
-  visitTime: string
+  status: 'confirmed' | 'completed' | 'passed' | 'waiting' | 'no_show'
+  isCall?: boolean
+  callTime?: string | null
+  visitTime?: string | null
+  completedTime?: string | null
   passCount: number
-}
-
-export interface NextPatientPreview {
-  patientName: string
-  queueNumber: string
+  priority?: number
+  isNoShow?: boolean
 }
 
 export interface QueueStats {
   totalSlots: number
-  waitingCount: number
+  confirmedCount: number
+  waitlistCount: number
   completedCount: number
+  waitingCount: number
   passedCount: number
+}
+
+export interface ScheduleInfo {
+  scheduleId: number | string
+  doctorId: number | string
+  date: string
+  timeSection: string
 }
 
 export interface QueueData {
   stats: QueueStats
+  scheduleInfo: ScheduleInfo
   currentPatient: Patient | null
-  nextPatient: NextPatientPreview | null
+  nextPatient: Patient | null
   queue: Patient[]
   waitlist: Patient[]
-  completedList: Patient[]
-  invalidList: Patient[]
+  completedQueue: Patient[]
+}
+
+export interface CallNextResponse {
+  detail: string
+  nextPatient: Patient
+  scheduleId: number | string
+}
+
+export interface PassPatientResponse {
+  detail: string
+  passedPatient: Patient
+  nextPatient: Patient
+  scheduleId: number | string
+}
+
+export interface CompletePatientResponse {
+  detail: string
+  completedPatient: Patient
+  scheduleId: number | string
 }
 
 export interface AddPatientParams {
   schedule_id: string | number
-  patient_id: string
-  priority: number // 1: 队尾(普通), 0: 下一位(优先)
+  patient_id: string | number
+  slot_type: string
   reason: string
+}
+
+export interface AddSlotResponse {
+  detail: string
+  audit_id?: number
+  order_id?: number
+}
+
+export interface AddSlotAudit {
+  audit_id: number
+  schedule_id: number
+  doctor_id: number
+  patient_id: number
+  slot_type: string
+  reason: string
+  applicant_id: number
+  submit_time: string
+  status: 'pending' | 'approved' | 'rejected'
+  auditor_user_id: number | null
+  audit_time: string | null
+  audit_remark: string | null
+  patient_name?: string // Optional, in case backend adds it later or we mock it
+}
+
+export interface AddSlotAuditsResponse {
+  audits: AddSlotAudit[]
 }
 
 export interface SearchPatientResult {

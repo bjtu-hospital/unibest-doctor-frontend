@@ -147,3 +147,29 @@ export const mockPatients = {
     },
   ],
 }
+
+export const mockExactPatients = {
+  patients: [
+    {
+      patient_id: 'P888',
+      name: '精准王',
+      gender: '男',
+      age: 28,
+      phone: '13888888888',
+    },
+    {
+      patient_id: 'P999',
+      name: '重名李',
+      gender: '女',
+      age: 22,
+      phone: '13999999991',
+    },
+    {
+      patient_id: 'P998',
+      name: '重名李',
+      gender: '男',
+      age: 45,
+      phone: '13999999992',
+    },
+  ],
+}
