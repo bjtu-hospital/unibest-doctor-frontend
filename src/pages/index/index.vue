@@ -2,9 +2,7 @@
   <div class="min-h-screen flex flex-col bg-gray-50">
     <wd-navbar placeholder safe-area-inset-top fixed :left-arrow="false">
       <template #title>
-        <div class="text-left text-base font-bold">
-          BJTU医生工作系统
-        </div>
+        <div class="text-left text-base font-bold" />
       </template>
     </wd-navbar>
 
