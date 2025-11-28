@@ -96,9 +96,11 @@ export function http<T>(options: CustomRequestOptions) {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           // 处理业务逻辑错误
           if (code !== ResultEnum.Success0 && code !== ResultEnum.Success200) {
+            const errorMsg = responseData.msg || responseData.message
+            const errorTitle = typeof errorMsg === 'string' ? errorMsg : '请求错误'
             uni.showToast({
               icon: 'none',
-              title: responseData.msg || responseData.message || '请求错误',
+              title: errorTitle,
             })
             return reject(res)
           }
@@ -106,11 +108,23 @@ export function http<T>(options: CustomRequestOptions) {
         }
 
         // 处理其他错误
-        !options.hideErrorToast
-        && uni.showToast({
-          icon: 'none',
-          title: (res.data as any).msg || '请求错误',
-        })
+        if (!options.hideErrorToast) {
+          const errorData = res.data as any
+          let errorTitle = '请求错误'
+          if (typeof errorData?.msg === 'string') {
+            errorTitle = errorData.msg
+          }
+          else if (typeof errorData?.message === 'string') {
+            errorTitle = errorData.message
+          }
+          else if (typeof errorData?.detail === 'string') {
+            errorTitle = errorData.detail
+          }
+          uni.showToast({
+            icon: 'none',
+            title: errorTitle,
+          })
+        }
         reject(res)
       },
       // 响应失败
