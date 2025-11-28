@@ -101,7 +101,7 @@
       <div class="mb-2 text-sm text-gray-800 font-bold">
         🎯 常用功能
       </div>
-      <div :class="userStore.isDepartmentHead ? 'grid grid-cols-3 gap-3' : 'grid grid-cols-2 gap-3'">
+      <div class="grid grid-cols-3 gap-3">
         <div class="flex flex-col items-center justify-center rounded-lg bg-white p-5 shadow-sm active:scale-[0.98]" @click="navigateTo('/pages/leave/index')">
           <div class="h-16 w-16 flex items-center justify-center rounded-full text-white" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);">
             <div class="i-carbon-document-add text-2xl" />
@@ -116,6 +116,14 @@
           </div>
           <div class="mt-2 text-xs text-gray-700 font-bold">
             开始接诊
+          </div>
+        </div>
+        <div class="flex flex-col items-center justify-center rounded-lg bg-white p-5 shadow-sm active:scale-[0.98]" @click="navigateTo('/pages/date/date')">
+          <div class="h-16 w-16 flex items-center justify-center rounded-full text-white" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+            <div class="i-carbon-calendar-heat-map text-2xl" />
+          </div>
+          <div class="mt-2 text-xs text-gray-700 font-bold">
+            我的排班
           </div>
         </div>
         <template v-if="userStore.isDepartmentHead">

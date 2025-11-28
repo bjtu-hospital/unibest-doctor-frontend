@@ -6,6 +6,7 @@ import type {
   CompletePatientResponse,
   PassPatientResponse,
   QueueData,
+  ScheduleListResponse,
   SchedulesResponse,
   SearchPatientResult,
 } from './types/doctor'
@@ -28,6 +29,19 @@ export function getDoctorSchedules(doctorId: string): Promise<SchedulesResponse>
     })
   }
   return httpGet('/doctor/schedules/today', { doctor_id: doctorId })
+}
+
+export function getDoctorScheduleList(params: { doctor_id: string | number, start_date: string, end_date: string }): Promise<ScheduleListResponse> {
+  if (USE_MOCK) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          schedules: [], // Mock empty for now or add mock data if needed
+        })
+      }, 500)
+    })
+  }
+  return httpGet('/doctor/schedules', params)
 }
 
 export function getConsultationQueue(scheduleId: string | number): Promise<QueueData> {
