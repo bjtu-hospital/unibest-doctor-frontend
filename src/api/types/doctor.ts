@@ -12,6 +12,27 @@ export interface Schedule {
   available_slot_types: string[]
 }
 
+export interface ScheduleItem {
+  schedule_id: number
+  doctor_id: number
+  doctor_name: string
+  clinic_id: number
+  clinic_name: string
+  clinic_type: number
+  date: string
+  week_day: number
+  time_section: string
+  slot_type: string
+  total_slots: number
+  remaining_slots: number
+  status: string
+  price: number
+}
+
+export interface ScheduleListResponse {
+  schedules: ScheduleItem[]
+}
+
 export interface SchedulesResponse {
   schedules: Schedule[]
 }
