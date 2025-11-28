@@ -138,10 +138,7 @@ export const useTokenStore = defineStore(
       }
       catch (error) {
         console.error('登录失败:', error)
-        uni.showToast({
-          title: '登录失败，请重试',
-          icon: 'error',
-        })
+        // 错误信息已在 http 拦截器中统一处理，此处不再重复提示
         throw error
       }
     }
@@ -169,10 +166,7 @@ export const useTokenStore = defineStore(
       }
       catch (error) {
         console.error('登录失败:', error)
-        uni.showToast({
-          title: '登录失败，请重试',
-          icon: 'error',
-        })
+        // 错误信息已在 http 拦截器中统一处理，此处不再重复提示
         throw error
       }
     }
@@ -199,10 +193,7 @@ export const useTokenStore = defineStore(
       }
       catch (error) {
         console.error('微信登录失败:', error)
-        uni.showToast({
-          title: '微信登录失败，请重试',
-          icon: 'error',
-        })
+        // 错误信息已在 http 拦截器中统一处理，此处不再重复提示
         throw error
       }
     }

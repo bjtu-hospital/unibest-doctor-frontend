@@ -142,6 +142,7 @@ import { getAvailableDoctors } from '@/service/schedule'
 const props = defineProps<{
   modelValue: boolean
   targetSlot?: ScheduleSlot
+  clinicId: string
 }>()
 
 const emit = defineEmits<{
@@ -168,9 +169,9 @@ watch(visible, (val) => {
 })
 
 async function fetchDoctors() {
-  if (!props.targetSlot)
+  if (!props.targetSlot || !props.clinicId)
     return
-  doctors.value = await getAvailableDoctors(props.targetSlot.date, props.targetSlot.shift)
+  doctors.value = await getAvailableDoctors(props.clinicId, props.targetSlot.date, props.targetSlot.shift)
 }
 
 const filteredDoctors = computed(() => {

@@ -140,6 +140,8 @@ import type { ScheduleItem, ShiftType } from '@/types/leave'
 import { computed, ref, watch } from 'vue'
 import { useToast } from 'wot-design-uni'
 import { submitLeaveApplication } from '@/service/leave'
+import { getEnvBaseUrl } from '@/utils'
+import { useFileUpload } from '@/utils/uploadFile'
 
 const props = defineProps<{
   modelValue: boolean
@@ -160,6 +162,30 @@ const form = ref({
   reason: '',
   attachments: [] as string[],
 })
+
+// Upload hook
+const { run: runUpload } = useFileUpload<{ url: string, name: string }>(
+  `${getEnvBaseUrl()}/common/upload`,
+  '', // filePath will be set dynamically
+  {},
+  {
+    onSuccess: (res) => {
+      console.log('Upload success:', res)
+      if (res && res.url) {
+        form.value.attachments.push(res.url)
+        toast.success('上传成功')
+      }
+      else {
+        console.error('Upload response missing url:', res)
+        toast.error('上传失败：响应格式错误')
+      }
+    },
+    onError: (err) => {
+      toast.error('上传失败')
+      console.error('Upload error:', err)
+    },
+  },
+)
 
 watch(() => props.modelValue, (val) => {
   visible.value = val
@@ -202,13 +228,8 @@ function handleClose() {
 }
 
 function addAttachment() {
-  // Mock upload
-  uni.chooseImage({
-    count: 1,
-    success: (res) => {
-      form.value.attachments.push(res.tempFilePaths[0])
-    },
-  })
+  // Use the upload hook which handles selection and upload
+  runUpload()
 }
 
 function removeAttachment(index: number) {

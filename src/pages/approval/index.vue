@@ -217,7 +217,7 @@ function formatTimeAgo(dateStr: string) {
 }
 
 function getShiftLabel(shift: string) {
-  const map: Record<string, string> = { full: '全天', morning: '上午', afternoon: '下午' }
+  const map: Record<string, string> = { full: '全天', morning: '上午', afternoon: '下午', evening: '晚间' }
   return map[shift] || shift
 }
 
