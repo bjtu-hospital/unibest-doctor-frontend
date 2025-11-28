@@ -140,13 +140,14 @@
     </div>
 
     <!-- 提醒事项 -->
-    <div v-if="workbenchData?.reminders && workbenchData.reminders.length > 0" class="mx-4 mt-4">
+    <div v-if="(workbenchData?.reminders && workbenchData.reminders.length > 0) || leaveRecords.length > 0" class="mx-4 mb-6 mt-4">
       <div class="mb-2 text-sm text-gray-800 font-bold">
         🔔 提醒事项
       </div>
       <div class="space-y-2">
+        <!-- 系统提醒 -->
         <div
-          v-for="reminder in workbenchData.reminders"
+          v-for="reminder in workbenchData?.reminders || []"
           :key="reminder.id"
           class="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm"
         >
@@ -162,38 +163,51 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- 最近接诊记录 -->
-    <div v-if="recentRecords && recentRecords.length > 0" class="mx-4 mb-6 mt-4">
-      <div class="mb-2 text-sm text-gray-800 font-bold">
-        📋 最近接诊
-      </div>
-      <div class="space-y-2">
+        <!-- 请假提醒 -->
         <div
-          v-for="record in recentRecords"
-          :key="record.id"
-          class="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm active:scale-[0.98]"
-          @click="navigateTo(`/pages/patient-detail/patient-detail?id=${record.id}`)"
+          v-for="leave in leaveRecords"
+          :key="leave.id"
+          class="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm"
+          :class="{
+            'border-l-4 border-yellow-500': leave.status === 'pending',
+            'border-l-4 border-green-500': leave.status === 'approved',
+            'border-l-4 border-red-500': leave.status === 'rejected',
+          }"
         >
-          <div class="h-10 w-10 flex items-center justify-center rounded-full bg-green-50">
-            <div class="i-carbon-user text-lg text-green-500" />
+          <div
+            class="h-10 w-10 flex items-center justify-center rounded-full"
+            :class="{
+              'bg-yellow-50': leave.status === 'pending',
+              'bg-green-50': leave.status === 'approved',
+              'bg-red-50': leave.status === 'rejected',
+            }"
+          >
+            <div
+              class="text-lg"
+              :class="{
+                'i-carbon-time text-yellow-500': leave.status === 'pending',
+                'i-carbon-checkmark-filled text-green-500': leave.status === 'approved',
+                'i-carbon-close-filled text-red-500': leave.status === 'rejected',
+              }"
+            />
           </div>
           <div class="flex-1">
-            <div class="flex items-center justify-between">
-              <div class="text-sm text-gray-800 font-bold">
-                {{ record.patientName }}
-              </div>
-              <div class="text-xs text-gray-400">
-                {{ record.consultationTime }}
-              </div>
+            <div class="text-sm text-gray-800 font-bold">
+              <span v-if="leave.status === 'pending'">请假审批中</span>
+              <span v-else-if="leave.status === 'approved'">请假已通过</span>
+              <span v-else-if="leave.status === 'rejected'">请假已拒绝</span>
             </div>
             <div class="mt-0.5 text-xs text-gray-500">
-              {{ record.diagnosis || '暂无诊断' }}
+              {{ dayjs(leave.date).format('MM月DD日') }}
+              <span v-if="leave.shift === 'morning'">上午</span>
+              <span v-else-if="leave.shift === 'afternoon'">下午</span>
+              <span v-else-if="leave.shift === 'full'">全天</span>
+              <span v-else-if="leave.shift === 'night'">夜班</span>
+              <span v-if="leave.status === 'approved' && leave.approver"> · 审批人：{{ leave.approver }}</span>
+              <span v-if="leave.status === 'rejected' && leave.rejectReason"> · {{ leave.rejectReason }}</span>
             </div>
           </div>
-          <div class="i-carbon-chevron-right text-base text-gray-300" />
         </div>
       </div>
     </div>
@@ -201,10 +215,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { RecentRecord, WorkbenchData } from '@/service/workbench'
+import type { WorkbenchData } from '@/service/workbench'
+import type { LeaveRecord } from '@/types/leave'
 import dayjs from 'dayjs'
 import { computed, onMounted, ref } from 'vue'
 import { getApprovalStats } from '@/service/approval'
+import { getLeaveHistory } from '@/service/leave'
 import {
   checkin,
   checkout,
@@ -276,8 +292,8 @@ const approvalStats = ref<{ pending: number, approvedMonth: number, rejectedMont
   rejectedMonth: 0,
 })
 
-// 最近接诊记录
-const recentRecords = ref<RecentRecord[]>([])
+// 请假记录
+const leaveRecords = ref<LeaveRecord[]>([])
 
 // 加载工作台数据
 async function loadWorkbenchData() {
@@ -293,9 +309,6 @@ async function loadWorkbenchData() {
       completed: data.todayData.completedConsultation,
       total: data.todayData.totalConsultation,
     }
-
-    // 更新最近记录
-    recentRecords.value = data.recentRecords
   }
   catch (error) {
     console.error('Failed to load workbench data:', error)
@@ -319,6 +332,24 @@ async function loadApprovalStats() {
   }
   catch (e) {
     approvalStats.value = { pending: 0, approvedMonth: 0, rejectedMonth: 0 }
+  }
+}
+
+// 加载请假记录（近期和今天的）
+async function loadLeaveRecords() {
+  try {
+    const records = await getLeaveHistory(1, 10)
+    // 只保留今天及未来7天的请假记录
+    const today = dayjs()
+    const sevenDaysLater = today.add(7, 'day')
+    leaveRecords.value = records.filter((record) => {
+      const leaveDate = dayjs(record.date)
+      return leaveDate.isSame(today, 'day') || (leaveDate.isAfter(today) && leaveDate.isBefore(sevenDaysLater))
+    })
+  }
+  catch (error) {
+    console.error('Failed to load leave records:', error)
+    leaveRecords.value = []
   }
 }
 
@@ -440,6 +471,7 @@ onMounted(async () => {
   await Promise.all([
     loadWorkbenchData(),
     loadApprovalStats(),
+    loadLeaveRecords(),
   ])
 })
 </script>
