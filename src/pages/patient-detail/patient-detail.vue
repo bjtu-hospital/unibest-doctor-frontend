@@ -11,7 +11,7 @@
     <MedicalHistory :medical-history="patientData?.medicalHistory" />
 
     <!-- 就诊记录 -->
-    <ConsultationRecords :records="patientData?.consultationRecords" />
+    <ConsultationRecords :records="patientData?.consultationRecords" :patient-id="patientId" />
   </view>
 </template>
 
