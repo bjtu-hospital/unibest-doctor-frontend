@@ -208,7 +208,6 @@ function handleVersion() {
 </template>
 
 <style scoped>
-/* 优化点击效果 */
 .logout-btn:active {
   transform: scale(0.98);
   transition: transform 0.1s;

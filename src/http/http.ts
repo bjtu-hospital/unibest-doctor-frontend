@@ -1,10 +1,19 @@
 import type { IDoubleTokenRes } from '@/api/types/login'
 import type { CustomRequestOptions, IResponse } from '@/http/types'
 import { nextTick } from 'vue'
-import { useTokenStore } from '@/store/token'
 import { isDoubleTokenMode } from '@/utils'
 import { toLoginPage } from '@/utils/toLoginPage'
 import { ResultEnum } from './tools/enum'
+
+// 延迟获取 tokenStore 以避免循环依赖
+let tokenStoreGetter: (() => any) | null = null
+async function getTokenStore() {
+  if (!tokenStoreGetter) {
+    const { useTokenStore } = await import('@/store/token')
+    tokenStoreGetter = useTokenStore
+  }
+  return tokenStoreGetter()
+}
 
 // 刷新 token 状态管理
 let refreshing = false // 防止重复刷新 token 标识
@@ -28,7 +37,7 @@ export function http<T>(options: CustomRequestOptions) {
         const isTokenExpired = res.statusCode === 401 || code === 401
 
         if (isTokenExpired) {
-          const tokenStore = useTokenStore()
+          const tokenStore = await getTokenStore()
           if (!isDoubleTokenMode) {
             // 未启用双token策略，清理用户信息，跳转到登录页
             tokenStore.logout()
@@ -133,7 +142,7 @@ export function http<T>(options: CustomRequestOptions) {
           icon: 'none',
           title: '网络错误，换个网络试试',
         })
-        reject(err)
+        reject(err || { errMsg: 'Network Error' })
       },
     })
   })
