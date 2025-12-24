@@ -37,7 +37,7 @@ export function refreshToken(refreshToken: string) {
  * 获取用户信息
  */
 export function getUserInfo() {
-  return http.post<IUserInfoRes>('/auth/user-info')
+  return http.get<IUserInfoRes>('/auth/user-info')
 }
 
 /**

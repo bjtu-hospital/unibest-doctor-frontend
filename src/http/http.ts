@@ -104,7 +104,7 @@ export function http<T>(options: CustomRequestOptions) {
             })
             return reject(res)
           }
-          return resolve(responseData.data || responseData.message as unknown as T)
+          return resolve((responseData.data ?? responseData.message) as unknown as T)
         }
 
         // 处理其他错误

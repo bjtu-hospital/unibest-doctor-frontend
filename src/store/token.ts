@@ -39,8 +39,6 @@ export const useTokenStore = defineStore(
     const tokenInfo = ref<IAuthLoginRes>({ ...tokenInfoState })
     // 设置用户信息
     const setTokenInfo = (val: IAuthLoginRes) => {
-      tokenInfo.value = val
-
       // 计算并存储过期时间
       const now = Date.now()
       if (isSingleTokenRes(val)) {
@@ -55,6 +53,8 @@ export const useTokenStore = defineStore(
         uni.setStorageSync('accessTokenExpireTime', accessExpireTime)
         uni.setStorageSync('refreshTokenExpireTime', refreshExpireTime)
       }
+
+      tokenInfo.value = val
     }
 
     /**
