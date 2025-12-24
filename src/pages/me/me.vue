@@ -153,7 +153,7 @@ function handleVersion() {
     <!-- 设置列表 -->
     <div class="mx-4 mt-4 overflow-hidden rounded-xl bg-white shadow-sm">
       <!-- 修改密码 -->
-      <div class="flex items-center justify-between border-b border-gray-100 px-4 py-4 active:bg-gray-50" @click="handleChangePassword">
+      <div class="menu-item flex items-center justify-between border-b border-gray-100 px-4 py-4" @click="handleChangePassword">
         <div class="flex items-center gap-3">
           <div class="i-carbon-locked text-xl text-[#1890FF]" />
           <span class="text-sm text-gray-800">修改密码</span>
@@ -162,7 +162,7 @@ function handleVersion() {
       </div>
 
       <!-- 消息通知设置 -->
-      <div class="flex items-center justify-between border-b border-gray-100 px-4 py-4 active:bg-gray-50" @click="handleNotificationSettings">
+      <div class="menu-item flex items-center justify-between border-b border-gray-100 px-4 py-4" @click="handleNotificationSettings">
         <div class="flex items-center gap-3">
           <div class="i-carbon-notification text-xl text-[#52C41A]" />
           <span class="text-sm text-gray-800">消息通知设置</span>
@@ -171,7 +171,7 @@ function handleVersion() {
       </div>
 
       <!-- 关于我们 -->
-      <div class="flex items-center justify-between border-b border-gray-100 px-4 py-4 active:bg-gray-50" @click="handleAbout">
+      <div class="menu-item flex items-center justify-between border-b border-gray-100 px-4 py-4" @click="handleAbout">
         <div class="flex items-center gap-3">
           <div class="i-carbon-information text-xl text-[#FAAD14]" />
           <span class="text-sm text-gray-800">关于我们</span>
@@ -180,7 +180,7 @@ function handleVersion() {
       </div>
 
       <!-- 版本信息 -->
-      <div class="flex items-center justify-between px-4 py-4 active:bg-gray-50" @click="handleVersion">
+      <div class="menu-item flex items-center justify-between px-4 py-4" @click="handleVersion">
         <div class="flex items-center gap-3">
           <div class="i-carbon-application text-xl text-gray-500" />
           <span class="text-sm text-gray-800">版本信息</span>
@@ -195,7 +195,7 @@ function handleVersion() {
     <!-- 退出登录按钮 -->
     <div class="mx-4 mb-8 mt-6">
       <button
-        class="w-full border-2 border-[#FF4D4F] rounded-xl bg-white py-3.5 text-center text-sm text-[#FF4D4F] font-bold active:scale-98"
+        class="logout-btn w-full border-2 border-[#FF4D4F] rounded-xl bg-white py-3.5 text-center text-sm text-[#FF4D4F] font-bold"
         @click="handleLogout"
       >
         <div class="flex items-center justify-center gap-2">
@@ -209,12 +209,12 @@ function handleVersion() {
 
 <style scoped>
 /* 优化点击效果 */
-.active\:scale-98:active {
+.logout-btn:active {
   transform: scale(0.98);
   transition: transform 0.1s;
 }
 
-.active\:bg-gray-50:active {
+.menu-item:active {
   background-color: #f9fafb;
   transition: background-color 0.15s;
 }

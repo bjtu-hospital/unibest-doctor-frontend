@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onHide, onLaunch, onShow } from '@dcloudio/uni-app'
 import { LOGIN_PAGE } from '@/router/config'
-
 import { navigateToInterceptor } from '@/router/interceptor'
 import { useTokenStore } from '@/store/token'
 
