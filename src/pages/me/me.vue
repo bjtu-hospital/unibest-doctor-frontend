@@ -24,8 +24,17 @@ const userHospital = computed(() => userInfo.value.doctor?.hospital || '未知�
 const isDeptHead = computed(() => userStore.isDepartmentHead)
 const userAvatar = computed(() => {
   const doctor = userInfo.value.doctor
-  if (doctor?.photo_base64 && doctor?.photo_mime)
+  if (doctor?.photo_base64 && doctor?.photo_mime) {
+    const base64Length = doctor.photo_base64.length
+    console.log('Me page avatar base64 length:', base64Length, 'Doctor ID:', doctor.id)
+
+    if (base64Length > 2700000) {
+      console.warn('Me page avatar base64 too large:', base64Length)
+      return ''
+    }
+
     return `data:${doctor.photo_mime};base64,${doctor.photo_base64}`
+  }
   return ''
 })
 
@@ -89,6 +98,24 @@ function handleVersion() {
     showCancel: false,
   })
 }
+
+// 图片加载事件处理
+function handleImageLoad() {
+  console.log('Me page avatar loaded successfully')
+}
+
+function handleImageError(e: any) {
+  console.error('Me page avatar load failed:', e)
+  const doctor = userInfo.value.doctor
+  if (doctor) {
+    console.error('Me page doctor info:', {
+      id: doctor.id,
+      name: doctor.name,
+      photo_mime: doctor.photo_mime,
+      photo_base64_length: doctor.photo_base64?.length,
+    })
+  }
+}
 </script>
 
 <template>
@@ -108,7 +135,13 @@ function handleVersion() {
       <div class="flex flex-col items-center">
         <div class="relative">
           <div class="h-30 w-30 flex items-center justify-center overflow-hidden border-3 border-white/50 rounded-full bg-white/20">
-            <img v-if="userAvatar" :src="userAvatar" class="h-full w-full object-cover">
+            <img
+              v-if="userAvatar"
+              :src="userAvatar"
+              class="h-full w-full object-cover"
+              @error="handleImageError"
+              @load="handleImageLoad"
+            >
             <div v-else class="i-carbon-user-avatar text-16" />
           </div>
         </div>

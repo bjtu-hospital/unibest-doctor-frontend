@@ -7,8 +7,15 @@
     <div class="mx-4 mt-3 rounded-2xl from-[#1890FF] to-[#096DD9] bg-gradient-to-r p-5 text-white shadow-md">
       <div class="flex items-center gap-4">
         <div class="h-12 w-12 flex items-center justify-center overflow-hidden border border-white/50 rounded-full bg-white/20">
-          <img v-if="userAvatar" :src="userAvatar" class="h-full w-full object-cover">
-          <div v-else class="i-carbon-user-avatar text-2xl" />
+          <img
+            v-show="userAvatar && userAvatar.length > 0"
+            :src="userAvatar"
+            class="h-full w-full object-cover"
+            style="border-radius: 50%;"
+            @error="handleImageError"
+            @load="handleImageLoad"
+          >
+          <div v-show="!userAvatar || userAvatar.length === 0" class="i-carbon-user-avatar text-2xl" />
         </div>
         <div class="flex-1">
           <div class="flex items-center gap-2 text-base font-bold">
@@ -49,7 +56,7 @@
           ☕️ 今日无排班，好好休息
         </button>
         <button
-          v-else-if="currentShift.status === 'checked_out'"
+          v-else-if="currentShift?.status === 'checked_out'"
           class="w-full rounded-lg bg-gray-100 py-3 text-center text-sm text-gray-400 font-bold"
           disabled
         >
@@ -320,8 +327,33 @@ const userName = computed(() => userStore.userInfo.doctor?.name || '医生')
 const userDeptTitle = computed(() => `${userStore.userInfo.doctor?.department || '科室'}｜${userStore.userInfo.doctor?.title || ''}`)
 const userAvatar = computed(() => {
   const doctor = userStore.userInfo.doctor
-  if (doctor?.photo_base64 && doctor?.photo_mime)
-    return `data:${doctor.photo_mime};base64,${doctor.photo_base64}`
+  console.log('Index page computing userAvatar, doctor:', doctor)
+
+  if (doctor?.photo_base64 && doctor?.photo_mime) {
+    // 在微信小程序中，检查base64长度避免过大图片
+    const base64Length = doctor.photo_base64.length
+    console.log('Index Avatar base64 length:', base64Length, 'Doctor ID:', doctor.id, 'Name:', doctor.name)
+
+    // 微信小程序建议base64图片不超过2MB（约2.7M base64字符）
+    if (base64Length > 2700000) {
+      console.warn('Index Avatar base64 too large for WeChat miniprogram:', base64Length)
+      return ''
+    }
+
+    // 特殊处理：如果在微信小程序环境且图片过大，尝试使用网络图片
+    // #ifdef MP-WEIXIN
+    if (base64Length > 1000000) { // 1MB限制
+      console.log('Index Using fallback for large image in WeChat miniprogram')
+      return '' // 暂时返回空，使用默认图标
+    }
+    // #endif
+
+    const avatarUrl = `data:${doctor.photo_mime};base64,${doctor.photo_base64}`
+    console.log('Index Generated avatar URL length:', avatarUrl.length)
+    return avatarUrl
+  }
+
+  console.log('Index No avatar data available')
   return ''
 })
 
@@ -335,10 +367,14 @@ async function loadShifts() {
   if (!userStore.userInfo.doctor?.id)
     return
   try {
-    todayShifts.value = await getShifts(userStore.userInfo.doctor.id)
+    const shifts = await getShifts(userStore.userInfo.doctor.id)
+    // 确保返回的数据不为null
+    todayShifts.value = Array.isArray(shifts) ? shifts.filter(s => s != null) : []
+    console.log('Loaded shifts:', todayShifts.value)
   }
   catch (error) {
     console.error('Failed to load shifts:', error)
+    todayShifts.value = [] // 确保在错误时设置为空数组
   }
 }
 
@@ -431,7 +467,7 @@ const systemReminders = computed(() => {
   const list: { id: string, title: string, time: string, type: 'system' | 'schedule' | 'approval' }[] = []
 
   // 1. 排班提醒
-  if (todayShifts.value.length > 0) {
+  if (todayShifts.value.length > 0 && todayShifts.value[0]) {
     const shift = todayShifts.value[0]
     list.push({
       id: `shift-${shift.id}`,
@@ -643,8 +679,37 @@ function navigateTo(url: string) {
   uni.navigateTo({ url })
 }
 
+// 图片加载事件处理
+function handleImageLoad() {
+  console.log('Avatar loaded successfully')
+}
+
+function handleImageError(e: any) {
+  console.error('Avatar load failed:', e)
+  const doctor = userStore.userInfo.doctor
+  if (doctor) {
+    console.error('Doctor info:', {
+      id: doctor.id,
+      name: doctor.name,
+      photo_mime: doctor.photo_mime,
+      photo_base64_length: doctor.photo_base64?.length,
+    })
+  }
+}
+
 // 页面加载
 onMounted(async () => {
+  // 确保用户信息已加载
+  if (!userStore.userInfo.doctor?.id || userStore.userInfo.doctor.id === -1) {
+    try {
+      console.log('Loading user info on index page...')
+      await userStore.fetchUserInfo()
+    }
+    catch (error) {
+      console.error('Failed to load user info on index page:', error)
+    }
+  }
+
   await Promise.all([
     loadShifts(),
     loadApprovalStats(),
