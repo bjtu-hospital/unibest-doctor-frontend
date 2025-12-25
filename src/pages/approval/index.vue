@@ -81,8 +81,9 @@
             <div class="h-2 w-2 rounded-full" :class="getStatusColor(item.status)" />
             <span class="text-xs" :class="getStatusTextColor(item.status)">{{ getStatusText(item.status) }}</span>
           </div>
-          <div class="text-xs text-blue-500 font-bold">
-            查看详情 >
+          <div class="flex items-center gap-1 text-xs text-blue-500 font-bold">
+            查看详情
+            <div class="i-carbon-chevron-right text-sm" />
           </div>
         </div>
       </div>

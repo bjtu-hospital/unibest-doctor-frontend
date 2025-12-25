@@ -6,7 +6,7 @@ import { http } from '@/http/http'
 // true:  使用 Mock 数据（开发测试）
 // false: 使用真实接口（生产环境）
 // ============================================
-const USE_MOCK = false
+const USE_MOCK = true
 // ============================================
 
 // ========== 类型定义 ==========
@@ -241,15 +241,32 @@ export async function getShifts(doctorId: number, date?: string): Promise<ShiftI
   if (USE_MOCK) {
     return new Promise((resolve) => {
       setTimeout(() => {
+        console.log('Mock getShifts called with:', { doctorId, date })
         resolve([
           {
             id: 1,
-            name: '上午门诊',
+            name: '中医科内科',
             startTime: '08:00',
             endTime: '12:00',
-            location: '门诊楼3楼',
+            location: '中医科门诊',
             status: 'not_started',
           },
+          {
+            id: 2,
+            name: '心血管内科',
+            startTime: '14:00',
+            endTime: '18:00', 
+            location: '内科门诊',
+            status: 'not_started',
+          },
+          {
+            id: 3,
+            name: '急诊科',
+            startTime: '18:00',
+            endTime: '22:00',
+            location: '急诊科',
+            status: 'not_started',
+          }
         ])
       }, 300)
     })
