@@ -367,7 +367,9 @@ async function loadShifts() {
   if (!userStore.userInfo.doctor?.id)
     return
   try {
-    const shifts = await getShifts(userStore.userInfo.doctor.id)
+    const today = dayjs().format('YYYY-MM-DD')
+    console.log('Loading shifts for date:', today, 'doctorId:', userStore.userInfo.doctor.id)
+    const shifts = await getShifts(userStore.userInfo.doctor.id, today)
     // 确保返回的数据不为null
     todayShifts.value = Array.isArray(shifts) ? shifts.filter(s => s != null) : []
     console.log('Loaded shifts:', todayShifts.value)
@@ -509,30 +511,7 @@ const showReminders = computed(() => {
 
 // 加载工作台数据
 async function loadWorkbenchData() {
-  // 接口已废弃
-  // loading.value = true
-  // try {
-  //   const data = await getWorkbenchData()
-  //   workbenchData.value = data
 
-  //   // 更新接诊统计
-  //   consultationStats.value = {
-  //     pending: data.todayData.pendingConsultation,
-  //     ongoing: data.todayData.ongoingConsultation,
-  //     completed: data.todayData.completedConsultation,
-  //     total: data.todayData.totalConsultation,
-  //   }
-  // }
-  // catch (error) {
-  //   console.error('Failed to load workbench data:', error)
-  //   uni.showToast({
-  //     title: '加载工作台数据失败',
-  //     icon: 'none',
-  //   })
-  // }
-  // finally {
-  //   loading.value = false
-  // }
 }
 
 // 加载审批统计（如果是科室长）
