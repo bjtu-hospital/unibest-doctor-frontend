@@ -2,14 +2,14 @@
   <div class="rounded-lg bg-white p-4 shadow-sm">
     <!-- Month Switcher -->
     <div class="mb-4 flex items-center justify-between">
-      <div class="text-xl text-gray-500" @click="prevMonth">
-        &lt;
+      <div class="h-8 w-8 flex items-center justify-center text-xl text-gray-500" @click="prevMonth">
+        <div class="i-carbon-chevron-left" />
       </div>
       <div class="text-lg font-bold">
         {{ currentYear }}年{{ currentMonth }}月
       </div>
-      <div class="text-xl text-gray-500" @click="nextMonth">
-        &gt;
+      <div class="h-8 w-8 flex items-center justify-center text-xl text-gray-500" @click="nextMonth">
+        <div class="i-carbon-chevron-right" />
       </div>
     </div>
 

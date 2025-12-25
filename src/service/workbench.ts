@@ -176,29 +176,7 @@ const mockWorkbenchData: WorkbenchData = {
 
 // ========== API 函数 ==========
 
-/**
- * 获取工作台数据
- */
-export async function getWorkbenchData(): Promise<WorkbenchData> {
-  if (USE_MOCK) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ ...mockWorkbenchData })
-      }, 500)
-    })
-  }
 
-  try {
-    // http 层会自动提取 responseData.data 或 responseData.message
-    const res = await http.get<WorkbenchData>('/doctor/workbench/dashboard')
-    console.log('工作台数据:', res)
-    return res
-  }
-  catch (error) {
-    console.error('Failed to fetch workbench data:', error)
-    throw error
-  }
-}
 
 /**
  * 签到
@@ -259,7 +237,7 @@ export async function checkout(params: CheckinRequest): Promise<CheckoutResponse
 /**
  * 获取班次信息
  */
-export async function getShifts(doctorId?: number, date?: string): Promise<ShiftItem[]> {
+export async function getShifts(doctorId: number, date?: string): Promise<ShiftItem[]> {
   if (USE_MOCK) {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -281,7 +259,7 @@ export async function getShifts(doctorId?: number, date?: string): Promise<Shift
     // http 层会自动提取 responseData.data 或 responseData.message
     const res = await http.get<{ shifts: ShiftItem[] }>('/doctor/workbench/shifts', {
       doctorId,
-      date_str: date,
+      date,
     })
     return res.shifts || []
   }

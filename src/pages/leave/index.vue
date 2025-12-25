@@ -1,14 +1,7 @@
 <template>
   <div class="min-h-screen flex flex-col bg-gray-50">
     <!-- Navbar -->
-    <wd-navbar title="请假管理" placeholder safe-area-inset-top left-arrow fixed @click-left="handleBack">
-      <template #right>
-        <div class="flex items-center gap-1 text-gray-600" @click="showHistory = true">
-          <span class="text-lg">🕒</span>
-          <span class="text-sm">记录</span>
-        </div>
-      </template>
-    </wd-navbar>
+    <wd-navbar title="请假管理" placeholder safe-area-inset-top left-arrow fixed @click-left="handleBack" />
 
     <!-- Main Content -->
     <div class="flex flex-1 flex-col gap-4 p-4">
@@ -28,6 +21,15 @@
           <span class="text-xs text-gray-400">已请假</span>
           <span class="text-xl text-orange-500 font-bold">2<span class="ml-1 text-xs text-gray-400 font-normal">天</span></span>
         </div>
+      </div>
+
+      <!-- History Button -->
+      <div
+        class="flex items-center justify-center rounded-lg bg-white p-4 shadow-sm active:scale-[0.98]"
+        @click="showHistory = true"
+      >
+        <div class="i-carbon-time mr-2 text-lg text-blue-500" />
+        <span class="text-sm text-gray-600 font-bold">查看历史请假记录</span>
       </div>
     </div>
 

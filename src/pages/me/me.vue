@@ -22,6 +22,12 @@ const userTitle = computed(() => userInfo.value.doctor?.title || '未知职称')
 const userDept = computed(() => userInfo.value.doctor?.department || '未知科室')
 const userHospital = computed(() => userInfo.value.doctor?.hospital || '未知院区')
 const isDeptHead = computed(() => userStore.isDepartmentHead)
+const userAvatar = computed(() => {
+  const doctor = userInfo.value.doctor
+  if (doctor?.photo_base64 && doctor?.photo_mime)
+    return `data:${doctor.photo_mime};base64,${doctor.photo_base64}`
+  return ''
+})
 
 // 退出登录
 function handleLogout() {
@@ -55,24 +61,14 @@ function handleLogout() {
   })
 }
 
-// 修改密码
-function handleChangePassword() {
-  uni.showToast({
-    title: '功能开发中',
-    icon: 'none',
-  })
-  // TODO: 跳转到修改密码页面
-  // uni.navigateTo({ url: '/pages/change-password/index' })
+// 消息通知
+function handleNotification() {
+  uni.navigateTo({ url: '/pages/notification/index' })
 }
 
-// 消息通知设置
-function handleNotificationSettings() {
-  uni.showToast({
-    title: '功能开发中',
-    icon: 'none',
-  })
-  // TODO: 跳转到消息设置页面
-  // uni.navigateTo({ url: '/pages/notification-settings/index' })
+// 设置
+function handleSettings() {
+  uni.navigateTo({ url: '/pages/settings/index' })
 }
 
 // 关于我们
@@ -111,8 +107,9 @@ function handleVersion() {
       <!-- 头像 -->
       <div class="flex flex-col items-center">
         <div class="relative">
-          <div class="h-30 w-30 flex items-center justify-center border-3 border-white/50 rounded-full bg-white/20">
-            <div class="i-carbon-user-avatar text-16" />
+          <div class="h-30 w-30 flex items-center justify-center overflow-hidden border-3 border-white/50 rounded-full bg-white/20">
+            <img v-if="userAvatar" :src="userAvatar" class="h-full w-full object-cover">
+            <div v-else class="i-carbon-user-avatar text-16" />
           </div>
         </div>
 
@@ -152,20 +149,20 @@ function handleVersion() {
 
     <!-- 设置列表 -->
     <div class="mx-4 mt-4 overflow-hidden rounded-xl bg-white shadow-sm">
-      <!-- 修改密码 -->
-      <div class="menu-item flex items-center justify-between border-b border-gray-100 px-4 py-4" @click="handleChangePassword">
+      <!-- 消息通知 -->
+      <div class="menu-item flex items-center justify-between border-b border-gray-100 px-4 py-4" @click="handleNotification">
         <div class="flex items-center gap-3">
-          <div class="i-carbon-locked text-xl text-[#1890FF]" />
-          <span class="text-sm text-gray-800">修改密码</span>
+          <div class="i-carbon-notification text-xl text-[#52C41A]" />
+          <span class="text-sm text-gray-800">消息通知</span>
         </div>
         <div class="i-carbon-chevron-right text-base text-gray-400" />
       </div>
 
-      <!-- 消息通知设置 -->
-      <div class="menu-item flex items-center justify-between border-b border-gray-100 px-4 py-4" @click="handleNotificationSettings">
+      <!-- 设置 -->
+      <div class="menu-item flex items-center justify-between border-b border-gray-100 px-4 py-4" @click="handleSettings">
         <div class="flex items-center gap-3">
-          <div class="i-carbon-notification text-xl text-[#52C41A]" />
-          <span class="text-sm text-gray-800">消息通知设置</span>
+          <div class="i-carbon-settings text-xl text-[#1890FF]" />
+          <span class="text-sm text-gray-800">设置</span>
         </div>
         <div class="i-carbon-chevron-right text-base text-gray-400" />
       </div>

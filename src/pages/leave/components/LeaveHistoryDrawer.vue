@@ -6,6 +6,9 @@
     @close="handleClose"
   >
     <div class="h-full flex flex-col">
+      <!-- Status Bar Placeholder -->
+      <div class="h-[var(--status-bar-height)] bg-white" />
+
       <!-- Header -->
       <div class="z-10 flex items-center bg-white px-4 py-3 shadow-sm">
         <div class="flex-1 text-lg font-bold">
@@ -97,6 +100,7 @@ const tabs = [
   { key: 'all', label: '全部' },
   { key: 'pending', label: '待审批' },
   { key: 'approved', label: '已通过' },
+  { key: 'rejected', label: '已拒绝' },
 ]
 
 watch(() => props.modelValue, (val) => {

@@ -1,16 +1,14 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-gray-50">
-    <wd-navbar placeholder safe-area-inset-top fixed :left-arrow="false">
-      <template #title>
-        <div class="text-left text-base font-bold" />
-      </template>
-    </wd-navbar>
+  <div class="min-h-screen flex flex-col bg-[#f5f7fa]">
+    <!-- 状态栏占位 -->
+    <div class="h-[var(--status-bar-height)]" />
 
     <!-- 顶部个人信息卡片 -->
     <div class="mx-4 mt-3 rounded-2xl from-[#1890FF] to-[#096DD9] bg-gradient-to-r p-5 text-white shadow-md">
       <div class="flex items-center gap-4">
-        <div class="h-12 w-12 flex items-center justify-center border border-white/50 rounded-full bg-white/20">
-          <div class="i-carbon-user-avatar text-2xl" />
+        <div class="h-12 w-12 flex items-center justify-center overflow-hidden border border-white/50 rounded-full bg-white/20">
+          <img v-if="userAvatar" :src="userAvatar" class="h-full w-full object-cover">
+          <div v-else class="i-carbon-user-avatar text-2xl" />
         </div>
         <div class="flex-1">
           <div class="flex items-center gap-2 text-base font-bold">
@@ -28,7 +26,7 @@
     </div>
 
     <!-- 签到/签退板块 -->
-    <div class="mx-4 mt-4 rounded-xl bg-white p-5 shadow-sm">
+    <div class="mx-4 mt-4 rounded-xl bg-white p-5 shadow-md">
       <div class="flex items-center justify-between">
         <div class="text-sm text-gray-800 font-bold">
           {{ attendanceTitle }}
@@ -44,7 +42,21 @@
 
       <div class="mt-4">
         <button
-          v-if="!checkedIn"
+          v-if="!currentShift"
+          class="w-full rounded-lg bg-gray-100 py-3 text-center text-sm text-gray-400 font-bold"
+          disabled
+        >
+          ☕️ 今日无排班，好好休息
+        </button>
+        <button
+          v-else-if="currentShift.status === 'checked_out'"
+          class="w-full rounded-lg bg-gray-100 py-3 text-center text-sm text-gray-400 font-bold"
+          disabled
+        >
+          ✅ 今日工作已完成
+        </button>
+        <button
+          v-else-if="!checkedIn"
           class="w-full rounded-lg from-green-500 to-emerald-500 bg-gradient-to-r py-3 text-center text-sm text-white font-bold active:opacity-90"
           @click="handleCheckIn"
         >
@@ -65,79 +77,114 @@
     </div>
 
     <!-- 今日工作概览（科室长含待审批） -->
-    <div class="grid grid-cols-3 mx-4 mt-4 gap-3">
-      <div class="rounded-lg bg-white p-4 shadow-sm">
+    <div class="mx-4 mt-4 gap-3" :class="userStore.isDepartmentHead ? 'grid grid-cols-2' : 'grid grid-cols-2'">
+      <div class="flex flex-col justify-center rounded-lg bg-white p-4 shadow-md">
         <div class="flex items-center gap-2 text-xs text-gray-500">
           <div class="i-carbon-calendar" /> 今日排班
         </div>
         <div class="mt-2 text-sm text-gray-800 font-bold">
           {{ todayScheduleBrief }}
         </div>
-      </div>
-      <div class="rounded-lg bg-white p-4 shadow-sm active:scale-[0.98]" @click="navigateTo('/pages/doctor/doctor')">
-        <div class="flex items-center gap-2 text-xs text-gray-500">
-          <div class="i-carbon-user-multiple" /> 待接诊
+        <div v-if="currentShift" class="mt-1 text-xs text-gray-500">
+          {{ currentShift.startTime }}-{{ currentShift.endTime }}
         </div>
-        <div class="mt-2 text-2xl text-gray-800 font-extrabold">
-          {{ waitingPatients }}
-        </div>
-        <div class="mt-1 text-[10px] text-blue-500">
-          点击进入接诊
+        <div v-if="currentShift?.location" class="mt-1 flex items-center gap-1 text-xs text-gray-500">
+          <div class="i-carbon-location" />
+          {{ currentShift.location }}
         </div>
       </div>
-      <div v-if="userStore.isDepartmentHead" class="relative rounded-lg bg-white p-4 shadow-sm" @click="navigateTo('/pages/approval/index')">
-        <div class="flex items-center gap-2 text-xs text-gray-500">
-          <div class="i-carbon-notification" /> 待审批请假
+
+      <!-- 科室长：右侧上下布局 -->
+      <template v-if="userStore.isDepartmentHead">
+        <div class="flex flex-col gap-3">
+          <div class="flex flex-1 flex-col justify-center rounded-lg bg-white p-3 shadow-md active:scale-[0.98]" @click="navigateTo('/pages/doctor/doctor')">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 text-xs text-gray-500">
+                <div class="i-carbon-user-multiple" /> 待接诊
+              </div>
+              <div class="text-xl text-gray-800 font-extrabold">
+                {{ waitingPatients }}
+              </div>
+            </div>
+            <div class="mt-1 text-[10px] text-blue-500">
+              点击进入接诊
+            </div>
+          </div>
+          <div class="relative flex flex-1 flex-col justify-center rounded-lg bg-white p-3 shadow-md active:scale-[0.98]" @click="navigateTo('/pages/approval/index')">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 text-xs text-gray-500">
+                <div class="i-carbon-notification" /> 待审批
+              </div>
+              <div class="text-xl text-gray-800 font-extrabold">
+                {{ approvalStats.pending }}
+              </div>
+            </div>
+            <div class="mt-1 text-[10px] text-gray-400">
+              请假申请
+            </div>
+            <div v-if="approvalStats.pending > 0" class="absolute right-2 top-2 h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
+          </div>
         </div>
-        <div class="mt-2 text-2xl text-gray-800 font-extrabold">
-          {{ approvalStats.pending }}
+      </template>
+
+      <!-- 普通医生：右侧单卡片 -->
+      <template v-else>
+        <div class="flex flex-col justify-center rounded-lg bg-white p-4 shadow-md active:scale-[0.98]" @click="navigateTo('/pages/doctor/doctor')">
+          <div class="flex items-center gap-2 text-xs text-gray-500">
+            <div class="i-carbon-user-multiple" /> 待接诊
+          </div>
+          <div class="mt-2 text-2xl text-gray-800 font-extrabold">
+            {{ waitingPatients }}
+          </div>
+          <div class="mt-1 text-[10px] text-blue-500">
+            点击进入接诊
+          </div>
         </div>
-        <div class="absolute right-3 top-3 h-2 w-2 animate-pulse rounded-full bg-red-500" />
-      </div>
+      </template>
     </div>
 
     <!-- 功能区（角色区分） -->
-    <div class="mx-4 mb-6 mt-4">
+    <div class="mx-4 mt-4" :class="showReminders ? 'mb-6' : 'mb-4'">
       <div class="mb-2 text-sm text-gray-800 font-bold">
         🎯 常用功能
       </div>
-      <div class="grid grid-cols-3 gap-3">
-        <div class="flex flex-col items-center justify-center rounded-lg bg-white p-5 shadow-sm active:scale-[0.98]" @click="navigateTo('/pages/leave/index')">
-          <div class="h-16 w-16 flex items-center justify-center rounded-full text-white" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);">
-            <div class="i-carbon-document-add text-2xl" />
+      <div class="grid grid-cols-4 gap-3">
+        <div class="flex flex-col items-center justify-center rounded-lg bg-white p-3 shadow-md active:scale-[0.98]" @click="navigateTo('/pages/leave/index')">
+          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+            <div class="i-carbon-calendar-add text-xl" />
           </div>
           <div class="mt-2 text-xs text-gray-700 font-bold">
             请假申请
           </div>
         </div>
-        <div class="flex flex-col items-center justify-center rounded-lg bg-white p-5 shadow-sm active:scale-[0.98]" @click="navigateTo('/pages/doctor/doctor')">
-          <div class="h-16 w-16 flex items-center justify-center rounded-full text-white" style="background: linear-gradient(135deg, #FF512F 0%, #F09819 100%);">
-            <div class="i-carbon-user-activity text-2xl" />
+        <div class="flex flex-col items-center justify-center rounded-lg bg-white p-3 shadow-md active:scale-[0.98]" @click="navigateTo('/pages/doctor/doctor')">
+          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+            <div class="i-carbon-activity text-xl" />
           </div>
           <div class="mt-2 text-xs text-gray-700 font-bold">
             开始接诊
           </div>
         </div>
-        <div class="flex flex-col items-center justify-center rounded-lg bg-white p-5 shadow-sm active:scale-[0.98]" @click="navigateTo('/pages/date/date')">
-          <div class="h-16 w-16 flex items-center justify-center rounded-full text-white" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
-            <div class="i-carbon-calendar-heat-map text-2xl" />
+        <div class="flex flex-col items-center justify-center rounded-lg bg-white p-3 shadow-md active:scale-[0.98]" @click="navigateTo('/pages/date/date')">
+          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-green-50 text-green-600">
+            <div class="i-carbon-calendar text-xl" />
           </div>
           <div class="mt-2 text-xs text-gray-700 font-bold">
             我的排班
           </div>
         </div>
         <template v-if="userStore.isDepartmentHead">
-          <div class="flex flex-col items-center justify-center rounded-lg bg-white p-5 shadow-sm active:scale-[0.98]" @click="navigateTo('/pages/approval/index')">
-            <div class="h-16 w-16 flex items-center justify-center rounded-full text-white" style="background: linear-gradient(135deg, #FA8C16 0%, #FAAD14 100%);">
-              <div class="i-carbon-checkmark-filled text-2xl" />
+          <div class="flex flex-col items-center justify-center rounded-lg bg-white p-3 shadow-md active:scale-[0.98]" @click="navigateTo('/pages/approval/index')">
+            <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-orange-50 text-orange-600">
+              <div class="i-carbon-task-approved text-xl" />
             </div>
             <div class="mt-2 text-xs text-gray-700 font-bold">
               审核请假
             </div>
           </div>
-          <div class="flex flex-col items-center justify-center rounded-lg bg-white p-5 shadow-sm active:scale-[0.98]" @click="navigateTo('/pages/schedule/index')">
-            <div class="h-16 w-16 flex items-center justify-center rounded-full text-white" style="background: linear-gradient(135deg, #2196F3 0%, #00BCD4 100%);">
-              <div class="i-carbon-calendar text-2xl" />
+          <div class="flex flex-col items-center justify-center rounded-lg bg-white p-3 shadow-md active:scale-[0.98]" @click="navigateTo('/pages/schedule/index')">
+            <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-cyan-50 text-cyan-600">
+              <div class="i-carbon-settings text-xl" />
             </div>
             <div class="mt-2 text-xs text-gray-700 font-bold">
               调整排班
@@ -148,19 +195,36 @@
     </div>
 
     <!-- 提醒事项 -->
-    <div v-if="(workbenchData?.reminders && workbenchData.reminders.length > 0) || leaveRecords.length > 0" class="mx-4 mb-6 mt-4">
-      <div class="mb-2 text-sm text-gray-800 font-bold">
-        🔔 提醒事项
+    <div v-if="showReminders" class="mx-4 mb-6 mt-4">
+      <div class="mb-2 flex items-center justify-between" @click="navigateTo('/pages/notification/index')">
+        <div class="text-sm text-gray-800 font-bold">
+          🔔 提醒事项
+        </div>
+        <div class="i-carbon-chevron-right text-gray-400" />
       </div>
       <div class="space-y-2">
         <!-- 系统提醒 -->
         <div
-          v-for="reminder in workbenchData?.reminders || []"
+          v-for="reminder in systemReminders"
           :key="reminder.id"
-          class="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm"
+          class="flex items-center gap-3 rounded-lg bg-white p-3 shadow-md"
         >
-          <div class="h-10 w-10 flex items-center justify-center rounded-full bg-blue-50">
-            <div class="i-carbon-notification text-lg text-blue-500" />
+          <div
+            class="h-10 w-10 flex items-center justify-center rounded-full"
+            :class="{
+              'bg-blue-50': reminder.type === 'system',
+              'bg-green-50': reminder.type === 'schedule',
+              'bg-orange-50': reminder.type === 'approval',
+            }"
+          >
+            <div
+              class="text-lg"
+              :class="{
+                'i-carbon-notification text-blue-500': reminder.type === 'system',
+                'i-carbon-calendar text-green-500': reminder.type === 'schedule',
+                'i-carbon-task-approved text-orange-500': reminder.type === 'approval',
+              }"
+            />
           </div>
           <div class="flex-1">
             <div class="text-sm text-gray-800 font-bold">
@@ -176,7 +240,7 @@
         <div
           v-for="leave in leaveRecords"
           :key="leave.id"
-          class="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm"
+          class="flex items-center gap-3 rounded-lg bg-white p-3 shadow-md"
           :class="{
             'border-l-4 border-yellow-500': leave.status === 'pending',
             'border-l-4 border-green-500': leave.status === 'approved',
@@ -223,7 +287,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { WorkbenchData } from '@/service/workbench'
+import type { ShiftItem, WorkbenchData } from '@/service/workbench'
 import type { LeaveRecord } from '@/types/leave'
 import dayjs from 'dayjs'
 import { computed, onMounted, ref } from 'vue'
@@ -232,8 +296,7 @@ import { getLeaveHistory } from '@/service/leave'
 import {
   checkin,
   checkout,
-  getWorkbenchData,
-
+  getShifts,
 } from '@/service/workbench'
 import { useUserStore } from '@/store/user'
 
@@ -255,16 +318,76 @@ const greeting = computed(() => {
 
 const userName = computed(() => userStore.userInfo.doctor?.name || '医生')
 const userDeptTitle = computed(() => `${userStore.userInfo.doctor?.department || '科室'}｜${userStore.userInfo.doctor?.title || ''}`)
+const userAvatar = computed(() => {
+  const doctor = userStore.userInfo.doctor
+  if (doctor?.photo_base64 && doctor?.photo_mime)
+    return `data:${doctor.photo_mime};base64,${doctor.photo_base64}`
+  return ''
+})
 
 // 工作台数据
 const workbenchData = ref<WorkbenchData | null>(null)
 const loading = ref(false)
+const todayShifts = ref<ShiftItem[]>([])
+
+// 加载班次数据
+async function loadShifts() {
+  if (!userStore.userInfo.doctor?.id)
+    return
+  try {
+    todayShifts.value = await getShifts(userStore.userInfo.doctor.id)
+  }
+  catch (error) {
+    console.error('Failed to load shifts:', error)
+  }
+}
+
+// 计算当前班次
+const currentShift = computed(() => {
+  if (todayShifts.value.length === 0)
+    return null
+
+  // 1. 优先找正在进行或待签退的（状态优先）
+  const activeShift = todayShifts.value.find(s => s.status === 'checked_in' || s.status === 'checkout_pending')
+  if (activeShift)
+    return activeShift
+
+  const now = dayjs()
+  const nowTime = now.hour() * 60 + now.minute()
+
+  // 辅助函数：将 HH:mm 转换为分钟数
+  const getMinutes = (timeStr: string) => {
+    const [h, m] = timeStr.split(':').map(Number)
+    return h * 60 + m
+  }
+
+  // 2. 找时间正在进行中的班次
+  const ongoingShift = todayShifts.value.find((s) => {
+    const start = getMinutes(s.startTime)
+    const end = getMinutes(s.endTime)
+    return nowTime >= start && nowTime <= end
+  })
+  if (ongoingShift)
+    return ongoingShift
+
+  // 3. 找即将开始的班次（最近的一个）
+  const upcomingShifts = todayShifts.value
+    .filter(s => getMinutes(s.startTime) > nowTime)
+    .sort((a, b) => getMinutes(a.startTime) - getMinutes(b.startTime))
+
+  if (upcomingShifts.length > 0) {
+    return upcomingShifts[0]
+  }
+
+  // 4. 如果都结束了，显示最后一个
+  // 按结束时间排序
+  const sortedShifts = [...todayShifts.value].sort((a, b) => getMinutes(a.endTime) - getMinutes(b.endTime))
+  return sortedShifts[sortedShifts.length - 1]
+})
 
 // 签到签退状态
-const shiftStatus = computed(() => workbenchData.value?.shiftStatus)
-const checkedIn = computed(() => shiftStatus.value?.status === 'checked_in' || shiftStatus.value?.status === 'checkout_pending')
-const checkInTime = computed(() => shiftStatus.value?.checkinTime || '')
-const currentShift = computed(() => shiftStatus.value?.currentShift)
+const checkedIn = computed(() => currentShift.value?.status === 'checked_in' || currentShift.value?.status === 'checkout_pending')
+const checkInTime = computed(() => '') // 接口未返回签到时间
 
 // 今日排班
 const todayScheduleText = computed(() => {
@@ -274,7 +397,7 @@ const todayScheduleText = computed(() => {
 })
 const todayScheduleBrief = computed(() => currentShift.value?.name || '无排班')
 const attendanceTitle = computed(() => {
-  const status = shiftStatus.value?.status
+  const status = currentShift.value?.status
   if (status === 'checked_in')
     return '已签到，未签退'
   if (status === 'checked_out')
@@ -303,31 +426,77 @@ const approvalStats = ref<{ pending: number, approvedMonth: number, rejectedMont
 // 请假记录
 const leaveRecords = ref<LeaveRecord[]>([])
 
-// 加载工作台数据
-async function loadWorkbenchData() {
-  loading.value = true
-  try {
-    const data = await getWorkbenchData()
-    workbenchData.value = data
+// 系统提醒（排班、审批、系统消息）
+const systemReminders = computed(() => {
+  const list: { id: string, title: string, time: string, type: 'system' | 'schedule' | 'approval' }[] = []
 
-    // 更新接诊统计
-    consultationStats.value = {
-      pending: data.todayData.pendingConsultation,
-      ongoing: data.todayData.ongoingConsultation,
-      completed: data.todayData.completedConsultation,
-      total: data.todayData.totalConsultation,
-    }
-  }
-  catch (error) {
-    console.error('Failed to load workbench data:', error)
-    uni.showToast({
-      title: '加载工作台数据失败',
-      icon: 'none',
+  // 1. 排班提醒
+  if (todayShifts.value.length > 0) {
+    const shift = todayShifts.value[0]
+    list.push({
+      id: `shift-${shift.id}`,
+      title: `今日排班：${shift.name}`,
+      time: `${shift.startTime}-${shift.endTime}`,
+      type: 'schedule',
     })
   }
-  finally {
-    loading.value = false
+
+  // 2. 待审批提醒
+  if (approvalStats.value.pending > 0) {
+    list.push({
+      id: 'approval-pending',
+      title: `有 ${approvalStats.value.pending} 条待审批申请`,
+      time: '待处理',
+      type: 'approval',
+    })
   }
+
+  // 3. 系统通知 (总是显示，确保开启开关后能看到内容)
+  list.push({
+    id: 'system-welcome',
+    title: '欢迎使用医生工作台',
+    time: dayjs().format('MM-DD'),
+    type: 'system',
+  })
+
+  return list
+})
+
+// 是否显示提醒事项
+const showReminders = computed(() => {
+  if (!userStore.showNotificationDetailsOnHome)
+    return false
+  const hasReminders = systemReminders.value.length > 0
+  const hasLeaves = leaveRecords.value.length > 0
+  return hasReminders || hasLeaves
+})
+
+// 加载工作台数据
+async function loadWorkbenchData() {
+  // 接口已废弃
+  // loading.value = true
+  // try {
+  //   const data = await getWorkbenchData()
+  //   workbenchData.value = data
+
+  //   // 更新接诊统计
+  //   consultationStats.value = {
+  //     pending: data.todayData.pendingConsultation,
+  //     ongoing: data.todayData.ongoingConsultation,
+  //     completed: data.todayData.completedConsultation,
+  //     total: data.todayData.totalConsultation,
+  //   }
+  // }
+  // catch (error) {
+  //   console.error('Failed to load workbench data:', error)
+  //   uni.showToast({
+  //     title: '加载工作台数据失败',
+  //     icon: 'none',
+  //   })
+  // }
+  // finally {
+  //   loading.value = false
+  // }
 }
 
 // 加载审批统计（如果是科室长）
@@ -387,7 +556,7 @@ async function handleCheckIn() {
     })
 
     // 重新加载数据
-    await loadWorkbenchData()
+    await loadShifts()
   }
   catch (error: any) {
     console.error('Check in failed:', error)
@@ -425,7 +594,7 @@ async function handleCheckOut() {
     })
 
     // 重新加载数据
-    await loadWorkbenchData()
+    await loadShifts()
   }
   catch (error: any) {
     console.error('Check out failed:', error)
@@ -477,7 +646,7 @@ function navigateTo(url: string) {
 // 页面加载
 onMounted(async () => {
   await Promise.all([
-    loadWorkbenchData(),
+    loadShifts(),
     loadApprovalStats(),
     loadLeaveRecords(),
   ])

@@ -33,6 +33,12 @@ export const useUserStore = defineStore(
       return String(isHead) === 'True' || String(isHead) === 'true'
     })
 
+    // 首页是否显示消息详情
+    const showNotificationDetailsOnHome = ref(true)
+    const toggleNotificationDetailsOnHome = (val: boolean) => {
+      showNotificationDetailsOnHome.value = val
+    }
+
     // 设置用户信息
     const setUserInfo = (val: IUserInfoRes) => {
       console.log('设置用户信息', val)
@@ -64,6 +70,8 @@ export const useUserStore = defineStore(
       fetchUserInfo,
       setUserInfo,
       setUserAvatar,
+      showNotificationDetailsOnHome,
+      toggleNotificationDetailsOnHome,
     }
   },
   {
