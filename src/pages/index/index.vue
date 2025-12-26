@@ -294,8 +294,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { ShiftItem, WorkbenchData } from '@/service/workbench'
+import type { ConsultationQueueResponse, ShiftItem, WorkbenchData } from '@/service/workbench'
 import type { LeaveRecord } from '@/types/leave'
+import { onShow } from '@dcloudio/uni-app'
 import dayjs from 'dayjs'
 import { computed, onMounted, ref } from 'vue'
 import { getApprovalStats } from '@/service/approval'
@@ -303,6 +304,7 @@ import { getLeaveHistory } from '@/service/leave'
 import {
   checkin,
   checkout,
+  getConsultationQueue,
   getShifts,
 } from '@/service/workbench'
 import { useUserStore } from '@/store/user'
@@ -445,14 +447,9 @@ const attendanceTitle = computed(() => {
   return '今日尚未签到'
 })
 
-// 接诊统计
-const consultationStats = ref({
-  pending: 0,
-  ongoing: 0,
-  completed: 0,
-  total: 0,
-})
-const waitingPatients = computed(() => consultationStats.value.pending)
+// 接诊队列统计（待接诊人数来自 /doctor/consultation/queue 的 waitingCount）
+const waitingCount = ref(0)
+const waitingPatients = computed(() => waitingCount.value)
 
 // 审批统计
 const approvalStats = ref<{ pending: number, approvedMonth: number, rejectedMonth: number }>({
@@ -514,6 +511,23 @@ async function loadWorkbenchData() {
 
 }
 
+// 加载接诊队列（根据当前班次的排班ID）
+async function loadConsultationQueue() {
+  if (!currentShift.value) {
+    waitingCount.value = 0
+    return
+  }
+
+  try {
+    const res: ConsultationQueueResponse | null = await getConsultationQueue(currentShift.value.id)
+    waitingCount.value = res?.stats?.waitingCount ?? 0
+  }
+  catch (error) {
+    console.error('Failed to load consultation queue:', error)
+    waitingCount.value = 0
+  }
+}
+
 // 加载审批统计（如果是科室长）
 async function loadApprovalStats() {
   if (!userStore.isDepartmentHead)
@@ -572,6 +586,7 @@ async function handleCheckIn() {
 
     // 重新加载数据
     await loadShifts()
+    await loadConsultationQueue()
   }
   catch (error: any) {
     console.error('Check in failed:', error)
@@ -610,6 +625,7 @@ async function handleCheckOut() {
 
     // 重新加载数据
     await loadShifts()
+    await loadConsultationQueue()
   }
   catch (error: any) {
     console.error('Check out failed:', error)
@@ -689,8 +705,22 @@ onMounted(async () => {
     }
   }
 
+  // 先加载今日班次，再根据当前班次获取接诊队列
+  await loadShifts()
+
+  await Promise.all([
+    loadConsultationQueue(),
+    loadApprovalStats(),
+    loadLeaveRecords(),
+  ])
+})
+
+// 每次返回首页时刷新关键数据（待审批、待接诊等）
+onShow(async () => {
+  // 返回首页时通常用户信息已在 store 中，无需再强制刷新
   await Promise.all([
     loadShifts(),
+    loadConsultationQueue(),
     loadApprovalStats(),
     loadLeaveRecords(),
   ])
