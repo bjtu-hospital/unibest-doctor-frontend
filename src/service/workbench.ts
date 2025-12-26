@@ -119,6 +119,21 @@ export interface ConsultationStats {
   total: number
 }
 
+// 接诊队列统计
+export interface ConsultationQueueStats {
+  totalSlots: number
+  confirmedCount: number
+  waitlistCount: number
+  completedCount: number
+  waitingCount: number
+  passedCount: number
+}
+
+// 接诊队列接口返回的关键结构（这里只保留当前需要的字段）
+export interface ConsultationQueueResponse {
+  stats: ConsultationQueueStats
+}
+
 // ========== Mock 数据 ==========
 
 const mockWorkbenchData: WorkbenchData = {
@@ -314,6 +329,41 @@ export async function getConsultationStats(doctorId: number): Promise<Consultati
   catch (error) {
     console.error('Failed to fetch consultation stats:', error)
     return { pending: 0, ongoing: 0, completed: 0, total: 0 }
+  }
+}
+
+/**
+ * 获取当前排班的接诊队列信息
+ * 对应接口：GET /doctor/consultation/queue
+ */
+export async function getConsultationQueue(scheduleId: number): Promise<ConsultationQueueResponse | null> {
+  if (USE_MOCK) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          stats: {
+            totalSlots: 2,
+            confirmedCount: 2,
+            waitlistCount: 0,
+            completedCount: 0,
+            waitingCount: 2,
+            passedCount: 0,
+          },
+        })
+      }, 300)
+    })
+  }
+
+  try {
+    // schedule_id 为排班ID（唯一标识某次出诊）
+    const res = await http.get<ConsultationQueueResponse>('/doctor/consultation/queue', {
+      schedule_id: scheduleId,
+    })
+    return res || null
+  }
+  catch (error) {
+    console.error('Failed to fetch consultation queue:', error)
+    return null
   }
 }
 
