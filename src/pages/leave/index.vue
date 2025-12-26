@@ -11,18 +11,6 @@
         @select="handleDateSelect"
       />
 
-      <!-- Bottom Info Card -->
-      <div class="flex items-center justify-between rounded-lg bg-white p-4 shadow-sm">
-        <div class="flex flex-1 flex-col items-center border-r border-gray-100">
-          <span class="text-xs text-gray-400">本月排班</span>
-          <span class="text-xl text-blue-600 font-bold">12<span class="ml-1 text-xs text-gray-400 font-normal">天</span></span>
-        </div>
-        <div class="flex flex-1 flex-col items-center">
-          <span class="text-xs text-gray-400">已请假</span>
-          <span class="text-xl text-orange-500 font-bold">2<span class="ml-1 text-xs text-gray-400 font-normal">天</span></span>
-        </div>
-      </div>
-
       <!-- History Button -->
       <div
         class="flex items-center justify-center rounded-lg bg-white p-4 shadow-sm active:scale-[0.98]"
