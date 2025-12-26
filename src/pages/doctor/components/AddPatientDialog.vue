@@ -35,6 +35,7 @@
                 <view>
                   <text class="mr-2 font-bold">{{ p.name }}</text>
                   <text class="text-xs text-gray-500">{{ p.gender }} | {{ p.age }}岁</text>
+                  <text class="mt-1 text-xs text-gray-400">ID: {{ p.patient_id }} · {{ p.phone || '无手机号' }} · {{ p.identifier || '无编号' }}</text>
                 </view>
                 <wd-icon v-if="selectedPatient?.patient_id === p.patient_id" name="check" color="#2563eb" />
               </view>
@@ -45,6 +46,25 @@
 
             <!-- Options -->
             <view v-if="selectedPatient" class="space-y-4">
+              <view class="rounded-lg bg-gray-50 p-3 text-sm text-gray-600 space-y-1">
+                <view class="flex justify-between">
+                  <text class="text-gray-400">患者ID:</text>
+                  <text>{{ selectedPatient.patient_id }}</text>
+                </view>
+                <view class="flex justify-between">
+                  <text class="text-gray-400">手机号:</text>
+                  <text>{{ selectedPatient.phone || '无' }}</text>
+                </view>
+                <view class="flex justify-between">
+                  <text class="text-gray-400">学号/工号:</text>
+                  <text>{{ selectedPatient.identifier || '无' }}</text>
+                </view>
+                <view class="flex justify-between">
+                  <text class="text-gray-400">身份证号:</text>
+                  <text>{{ selectedPatient.idCard || '无' }}</text>
+                </view>
+              </view>
+
               <view>
                 <text class="mb-2 block text-sm font-bold">号源类型</text>
                 <view class="flex flex-wrap gap-2">
@@ -184,9 +204,9 @@ function close() {
 
 // Apply Tab Logic
 const searchKeyword = ref('')
-const searchResults = ref<SearchPatientResult['patients']>([])
+const searchResults = ref<(SearchPatientResult['patients'][0] & { identifier?: string, idCard?: string })[]>([])
 const hasSearched = ref(false)
-const selectedPatient = ref<SearchPatientResult['patients'][0] | null>(null)
+const selectedPatient = ref<(SearchPatientResult['patients'][0] & { identifier?: string, idCard?: string }) | null>(null)
 const selectedSlotType = ref('')
 const reason = ref('')
 

@@ -139,5 +139,7 @@ export interface SearchPatientResult {
     gender: string
     age: number
     phone: string
+    identifier?: string
+    idCard?: string
   }[]
 }
