@@ -85,12 +85,11 @@ const tabs = [
 const activeTab = ref<TabKey>('waiting')
 
 const waitingList = computed(() => {
-  return props.queueData.queue.filter(p => (p.passCount || 0) < 2)
+  return [...(props.queueData.queue || []), ...(props.queueData.waitlist || [])]
 })
 
 const completedList = computed(() => {
-  const disqualified = props.queueData.queue.filter(p => (p.passCount || 0) >= 2)
-  return [...(props.queueData.completedQueue || []), ...disqualified]
+  return props.queueData.completedQueue || []
 })
 
 function getCount(key: TabKey) {
