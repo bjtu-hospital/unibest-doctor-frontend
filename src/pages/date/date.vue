@@ -97,7 +97,7 @@
           </view>
         </view>
 
-        <!-- 晚上 -->
+        <!-- 晚间 -->
         <view class="grid-row">
           <view class="time-axis">
             <text class="time-index">3</text>
@@ -109,18 +109,18 @@
             :key="`night-${colIndex}`"
             class="grid-cell"
             :class="{ 'is-today-col': day.isToday }"
-            @click="handleCellClick(day.fullDate, '晚上')"
+            @click="handleCellClick(day.fullDate, '晚间')"
           >
-            <view v-if="getSchedule(day.fullDate, '晚上')" class="schedule-card">
-              <text class="clinic-name">{{ getSchedule(day.fullDate, '晚上')?.clinic_name }}</text>
-              <text class="time-text">晚上</text>
+            <view v-if="getSchedule(day.fullDate, '晚间')" class="schedule-card">
+              <text class="clinic-name">{{ getSchedule(day.fullDate, '晚间')?.clinic_name }}</text>
+              <text class="time-text">晚间</text>
               <view class="tags-row">
                 <view class="slot-tag">
-                  {{ getSchedule(day.fullDate, '晚上')?.slot_type }}
+                  {{ getSchedule(day.fullDate, '晚间')?.slot_type }}
                 </view>
               </view>
-              <view class="status-badge" :class="getStatusClass(getSchedule(day.fullDate, '晚上')?.status)">
-                {{ getSchedule(day.fullDate, '晚上')?.status }}
+              <view class="status-badge" :class="getStatusClass(getSchedule(day.fullDate, '晚间')?.status)">
+                {{ getSchedule(day.fullDate, '晚间')?.status }}
               </view>
             </view>
           </view>

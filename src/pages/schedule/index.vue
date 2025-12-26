@@ -4,7 +4,7 @@
     <wd-navbar title="排班管理" placeholder safe-area-inset-top left-arrow fixed @click-left="handleBack" />
 
     <!-- 1. Clinic Tabs -->
-    <div class="sticky top-[var(--window-top)] z-[2] bg-white px-3 py-2">
+    <div class="sticky top-[var(--window-top)] z-[2] bg-white px-3 py-2 space-y-1">
       <div class="overflow-hidden border border-gray-200 rounded-lg shadow-sm">
         <wd-tabs v-model="currentClinicId" @change="handleClinicChange">
           <wd-tab
@@ -14,6 +14,14 @@
             :title="clinic.name"
           />
         </wd-tabs>
+      </div>
+
+      <!-- 当前诊室全称，支持换行显示，解决名称过长被截断的问题 -->
+      <div
+        v-if="currentClinic"
+        class="break-all px-1 text-[11px] text-gray-500 leading-snug"
+      >
+        当前诊室：{{ currentClinic.name }}
       </div>
     </div>
 
@@ -29,15 +37,6 @@
         <div class="p-2 text-gray-500 active:text-blue-600" @click="changeWeek(1)">
           <div class="i-carbon-chevron-right text-xl" />
         </div>
-      </div>
-
-      <div class="flex gap-2">
-        <button class="flex flex-1 items-center justify-center gap-1 rounded bg-blue-50 py-2 text-xs text-blue-600 font-bold active:bg-blue-100" @click="copyLastWeek">
-          <div class="i-carbon-copy" /> 复制上周
-        </button>
-        <button class="flex flex-1 items-center justify-center gap-1 rounded bg-red-50 py-2 text-xs text-red-600 font-bold active:bg-red-100" @click="clearWeek">
-          <div class="i-carbon-trash-can" /> 清空本周
-        </button>
       </div>
     </div>
 
@@ -183,6 +182,8 @@ const shifts: { key: ShiftType, label: string, time: string }[] = [
 ]
 
 // Computed
+const currentClinic = computed(() => clinics.value.find(c => c.id === currentClinicId.value) || null)
+
 const weekDays = computed(() => {
   const days = []
   const start = new Date(currentWeekStart.value)
@@ -330,29 +331,6 @@ async function handleSaveConfirm() {
 
 function handleCancel() {
   fetchSchedule() // Revert changes
-}
-
-function copyLastWeek() {
-  toast.success('已复制上周排班')
-  // Logic to copy data...
-}
-
-function clearWeek() {
-  uni.showModal({
-    title: '确认清空',
-    content: '确定要清空本周所有排班吗？',
-    success: (res) => {
-      if (res.confirm) {
-        scheduleSlots.value.forEach((s) => {
-          s.status = 'empty'
-          s.doctorId = undefined
-          s.doctorName = undefined
-          s.isModified = true
-        })
-        toast.success('已清空')
-      }
-    },
-  })
 }
 
 function handleBack() {
