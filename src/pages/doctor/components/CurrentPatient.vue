@@ -62,17 +62,21 @@
   <!-- Empty State -->
   <view v-else class="flex flex-col items-center justify-center rounded-2xl bg-white p-8 shadow-md">
     <view class="mb-4 h-20 w-20 flex items-center justify-center rounded-full bg-gray-100">
-      <wd-icon name="user" size="40px" color="#9ca3af" />
+      <wd-icon name="user" size="40px" color="#9caaf" />
     </view>
     <text class="mb-1 text-gray-500">当前无就诊人</text>
-    <text class="mb-4 text-xs text-gray-400">点击下方按钮呼叫下一位患者</text>
+
+    <text v-if="hasWaiting" class="mb-4 text-xs text-gray-400">点击下方按钮呼叫下一位患者</text>
+    <text v-else class="mb-4 text-xs text-red-400">无等待患者，无法呼叫下一位</text>
+
     <wd-button
+      :disabled="!hasWaiting"
       type="success"
       size="large"
       class="w-48"
-      @click="$emit('next')"
+      @click="onNext"
     >
-      呼叫下一位
+      {{ hasWaiting ? '呼叫下一位' : '暂无候诊' }}
     </wd-button>
   </view>
 </template>
@@ -80,9 +84,12 @@
 <script setup lang="ts">
 import type { Patient } from '@/api/types/doctor'
 
+import { computed } from 'vue'
+
 const props = defineProps<{
   patient: Patient | null
   nextPatient: Patient | null
+  waitingCount?: number
 }>()
 
 const emit = defineEmits<{
@@ -92,9 +99,17 @@ const emit = defineEmits<{
   (e: 'view-detail', patientId: string | number): void
 }>()
 
+const hasWaiting = computed(() => (props.waitingCount ?? 0) > 0)
+
 function onPatientClick() {
   if (props.patient) {
     emit('view-detail', props.patient.patientId)
   }
+}
+
+function onNext() {
+  if (!hasWaiting.value)
+    return
+  emit('next')
 }
 </script>

@@ -74,6 +74,7 @@
           <CurrentPatient
             :patient="queueData.currentPatient"
             :next-patient="queueData.nextPatient"
+            :waiting-count="queueData.stats?.waitingCount"
             @pass="handlePass"
             @next="handleNext"
             @complete="handleComplete"
@@ -185,6 +186,11 @@ async function fetchQueue() {
 async function handleNext() {
   if (!currentSchedule.value)
     return
+  // Prevent calling next when there are no waiting patients
+  if (!queueData.value || (queueData.value.stats && queueData.value.stats.waitingCount <= 0)) {
+    toast.warning('暂无等待患者')
+    return
+  }
   try {
     toast.loading('处理中...')
     await callNextPatient(currentSchedule.value.schedule_id)
