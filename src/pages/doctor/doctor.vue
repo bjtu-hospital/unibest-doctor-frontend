@@ -195,7 +195,6 @@ async function handleNext() {
   catch (e) {
     console.error(e)
     toast.close()
-    toast.error('操作失败')
   }
 }
 
@@ -219,7 +218,6 @@ async function handleComplete() {
     if (e !== 'cancel') {
       console.error(e)
       toast.close()
-      toast.error('操作失败')
     }
   }
 }
@@ -244,7 +242,6 @@ async function handlePass() {
     if (e !== 'cancel') {
       console.error(e)
       toast.close()
-      toast.error('操作失败')
     }
   }
 }
